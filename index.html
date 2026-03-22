@@ -3,166 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lord Naif - V9 The Ultimate Survival</title>
+    <title>Lord Naif - The Ultimate Pro Engine V10</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
+        /* إعدادات الشاشة الأساسية */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; user-select: none; color: white; }
-        #rotate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 1000; font-size: 20px; }
-        @media screen and (orientation: landscape) { #rotate { display: none; } }
+        #rotate-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 9999; font-size: 24px; font-weight: bold; }
+        @media screen and (orientation: landscape) { #rotate-screen { display: none; } }
         
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .no-cam { pointer-events: auto; }
+        /* واجهة المستخدم (UI) - معزولة عن الكاميرا */
+        #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .interactive { pointer-events: auto; }
         
-        #timer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.8); padding: 5px 20px; border-radius: 10px; border: 2px solid #555; transition: color 0.3s; }
+        /* المؤقت */
+        #top-timer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.8); padding: 5px 20px; border-radius: 8px; border: 2px solid #444; transition: all 0.3s ease; text-shadow: 1px 1px 2px #000; }
         
-        #inventory { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; flex-wrap: wrap; width: 150px; justify-content: flex-end; }
-        .inv-item { background: rgba(0,0,0,0.8); border: 1px solid #555; border-radius: 8px; padding: 4px 8px; font-size: 14px; display: none; flex-direction: column; align-items: center; }
-        .inv-item.blue { cursor: pointer; border-color: cyan; }
-        .inv-count { font-weight: bold; margin-top: 2px; }
-        .blue-timer { font-size: 10px; color: cyan; }
+        /* الرادار - مصغر ومحسن */
+        #minimap-container { position: absolute; top: 15px; left: 15px; width: 85px; height: 85px; border: 2px solid rgba(255,215,0,0.6); border-radius: 50%; background: rgba(0,0,0,0.85); overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        
+        /* الموارد (المخزون) */
+        #inventory-panel { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; flex-wrap: wrap; width: 160px; justify-content: flex-end; }
+        .inv-box { background: rgba(0,0,0,0.8); border: 1px solid #555; border-radius: 8px; padding: 5px 10px; font-size: 16px; display: none; flex-direction: column; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .inv-box.blue-active { cursor: pointer; border-color: #00ffff; box-shadow: 0 0 10px #00ffff; }
+        .item-count { font-weight: bold; margin-top: 3px; font-size: 14px; }
+        .blue-timer-text { font-size: 11px; color: #00ffff; margin-top: 2px; font-weight: bold; }
 
-        #joystick-zone { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
-        #joystick-stick { width: 40px; height: 40px; background: rgba(255,255,255,0.4); border-radius: 50%; position: absolute; top: 35px; left: 35px; }
+        /* التحكم بالحركة (الجويستيك) */
+        #joystick-area { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid rgba(255,255,255,0.15); }
+        #joystick-knob { width: 40px; height: 40px; background: rgba(255,255,255,0.5); border-radius: 50%; position: absolute; top: 35px; left: 35px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        .action-btn { position: absolute; border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        #btn-run { bottom: 30px; right: 30px; width: 75px; height: 75px; background: rgba(255,255,255,0.15); font-size: 18px; }
-        #btn-shoot { bottom: 120px; right: 30px; width: 60px; height: 60px; background: rgba(255,215,0,0.2); border-color: gold; display: none; font-size: 24px; }
+        /* أزرار الأكشن */
+        .action-circle { position: absolute; border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; box-shadow: 0 0 15px rgba(0,0,0,0.6); background: rgba(255,255,255,0.15); }
+        #btn-run-fast { bottom: 25px; right: 25px; width: 80px; height: 80px; font-size: 20px; color: white; text-shadow: 1px 1px 2px #000; }
+        #btn-use-weapon { bottom: 120px; right: 35px; width: 60px; height: 60px; background: rgba(255,215,0,0.2); border-color: gold; display: none; font-size: 24px; }
         
-        #stamina-container { position: absolute; bottom: 30px; right: 120px; width: 120px; height: 15px; background: rgba(0,0,0,0.6); border: 1px solid #fff; border-radius: 4px; transition: width 0.3s; }
-        #stamina-fill { width: 100%; height: 100%; background: #0f0; transition: width 0.1s; }
-        #stamina-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; text-align: center; font-size: 10px; line-height: 15px; font-weight: bold; text-shadow: 1px 1px #000; }
+        /* شريط التحمل */
+        #stamina-wrapper { position: absolute; bottom: 30px; right: 120px; width: 120px; height: 16px; background: rgba(0,0,0,0.7); border: 1px solid #fff; border-radius: 8px; overflow: hidden; transition: width 0.3s; }
+        #stamina-progress { width: 100%; height: 100%; background: linear-gradient(90deg, #00aa00, #00ff00); transition: width 0.1s linear; }
+        #stamina-label { position: absolute; top: 0; left: 0; width: 100%; height: 100%; text-align: center; font-size: 11px; line-height: 16px; font-weight: bold; text-shadow: 1px 1px 1px #000; }
 
-        /* رادار مصغر قليلاً */
-        #minimap { position: absolute; top: 15px; left: 15px; width: 90px; height: 90px; border: 2px solid rgba(255,215,0,0.5); border-radius: 50%; background: rgba(0,0,0,0.8); overflow: hidden; }
+        /* رسائل الأحداث */
+        #event-message { position: absolute; top: 25%; width: 100%; text-align: center; color: #ffff00; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; display: none; z-index: 50; }
         
-        #msg { position: absolute; top: 25%; width: 100%; text-align: center; color: yellow; font-size: 20px; font-weight: bold; text-shadow: 2px 2px #000; display: none; z-index: 20; }
-        
-        #death-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; pointer-events: auto; }
-        .restart-btn { margin-top: 30px; padding: 15px 40px; background: #aa0000; color: #fff; border: 2px solid #fff; cursor: pointer; font-size: 20px; font-weight: bold; border-radius: 10px; }
+        /* شاشة الموت */
+        #game-over-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; pointer-events: auto; }
+        .btn-restart { margin-top: 40px; padding: 15px 50px; background: #880000; color: #fff; border: 2px solid #ff0000; cursor: pointer; font-size: 22px; font-weight: bold; border-radius: 12px; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,0,0,0.4); }
     </style>
 </head>
 <body>
-    <div id="rotate">استدر بالجوال للوضع العرضي يا لورد 📱</div>
+    <div id="rotate-screen">يرجى تدوير الجوال للوضع العرضي 📱</div>
     
-    <div id="ui">
-        <div id="timer">05:00</div>
-        <div id="minimap" class="no-cam"><canvas id="minimap-canvas" width="90" height="90"></canvas></div>
+    <div id="game-ui">
+        <div id="top-timer">05:00</div>
+        <div id="minimap-container" class="interactive"><canvas id="radar-canvas" width="85" height="85"></canvas></div>
 
-        <div id="inventory" class="no-cam">
-            <div id="inv-pink" class="inv-item" style="color: hotpink;">💎 <span class="inv-count">0</span></div>
-            <div id="inv-blue" class="inv-item blue">🔵 <span class="inv-count">0</span><div id="blue-timer-txt" class="blue-timer"></div></div>
-            <div id="inv-green" class="inv-item" style="color: lime;">🟢 <span class="inv-count">0</span></div>
-            <div id="inv-weapon" class="inv-item" style="color: gold;">📢 <span class="inv-count">0</span></div>
-            <div id="inv-ammo" class="inv-item" style="color: #aaa;">🔋 <span class="inv-count">0</span></div>
+        <div id="inventory-panel" class="interactive">
+            <div id="item-pink" class="inv-box" style="color: hotpink;">💎 <span class="item-count">0</span></div>
+            <div id="item-blue" class="inv-box blue-active">🔵 <span class="item-count">0</span><div id="blue-time-display" class="blue-timer-text"></div></div>
+            <div id="item-green" class="inv-box" style="color: lime;">🟢 <span class="item-count">0</span></div>
+            <div id="item-weapon" class="inv-box" style="color: gold;">📢 <span class="item-count">0</span></div>
+            <div id="item-ammo" class="inv-box" style="color: #aaa;">🔋 <span class="item-count">0</span></div>
         </div>
 
-        <div id="stamina-container" class="no-cam"><div id="stamina-fill"></div><div id="stamina-text">100 / 100</div></div>
-        <div id="btn-shoot" class="action-btn no-cam">📢</div>
-        <div id="btn-run" class="action-btn no-cam">اركض</div>
-        <div id="joystick-zone" class="no-cam"><div id="joystick-stick"></div></div>
+        <div id="stamina-wrapper" class="interactive"><div id="stamina-progress"></div><div id="stamina-label">100 / 100</div></div>
+        <div id="btn-use-weapon" class="action-circle interactive">📢</div>
+        <div id="btn-run-fast" class="action-circle interactive">اركض</div>
+        <div id="joystick-area" class="interactive"><div id="joystick-knob"></div></div>
         
-        <div id="msg"></div>
+        <div id="event-message"></div>
     </div>
 
-    <div id="death-screen">
-        <h1 style="color: #ff3333; font-size: 45px; text-shadow: 3px 3px #000; margin-bottom: 0;">نال الوحش منك</h1>
-        <button class="restart-btn" onclick="location.reload()">إعادة المحاولة</button>
+    <div id="game-over-screen">
+        <h1 style="color: #ff2222; font-size: 55px; text-shadow: 4px 4px 10px #000; margin-bottom: 0;">نال الوحش منك</h1>
+        <button class="btn-restart" onclick="location.reload()">إعادة المحاولة</button>
     </div>
 
     <script>
-        let scene, camera, renderer, clock, playerLight;
-        let mapSize = 35, cellSize = 5; 
-        let grid = [], walls = [], items = [], monsters = [];
-        let gameTime = 300, isEndgame = false; 
+        // ==========================================
+        // إعدادات المحرك الأساسية (Core Engine)
+        // ==========================================
+        let scene, camera, renderer, clock, playerFlashlight;
+        let mapSize = 35, cellSize = 6; 
+        let grid = [], walls = [], itemsList = [], monstersList = [];
+        let gameTimeRemaining = 300, isEndgamePhase = false; 
 
+        // ==========================================
+        // كائن اللاعب (Player Logic)
+        // ==========================================
         let player = {
-            origSpeed: 4, currentSpeed: 4,
-            maxStamina: 100, stamina: 100,
-            isRunning: false, isMoving: false, isDead: false,
-            crystals: { pink: 0, blue: 0, green: 0 },
-            hasWeapon: false, ammo: 0,
-            blueActive: false, blueTimeLeft: 0,
-            deathTimer: 0, greenCount: 0
+            baseWalkSpeed: 4, currentSpeed: 4,
+            maxStamina: 100, currentStamina: 100,
+            isSprinting: false, isMoving: false, isDead: false,
+            inventory: { pink: 0, blue: 0, green: 0, ammo: 0 },
+            hasWeapon: false,
+            blueCrystalActive: false, blueCrystalTimer: 0,
+            deathAnimationTime: 0, greenUpgrades: 0
         };
 
-        let joyId = null, camId = null;
-        let joyVector = { x: 0, y: 0 };
-        let lastCamX = 0, lastCamY = 0;
+        // ==========================================
+        // نظام الإدخال واللمس (Input System)
+        // ==========================================
+        let joystickTouchId = null, cameraTouchId = null;
+        let moveVector = { x: 0, y: 0 };
+        let lastTouchCamX = 0, lastTouchCamY = 0;
         
+        // ==========================================
+        // نظام الصوت (Audio Synthesizer)
+        // ==========================================
         let audioCtx = null;
-        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function initAudioEngine() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
-        function playSound(type) {
+        function playGameSound(soundType) {
             if(!audioCtx || audioCtx.state === 'suspended') return;
-            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if(type === 'footstep') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            } else if (type === 'weapon') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
-                gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            } else if (type === 'teleport') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 0.5);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            let osc = audioCtx.createOscillator(); 
+            let gainNode = audioCtx.createGain();
+            osc.connect(gainNode); 
+            gainNode.connect(audioCtx.destination);
+            
+            if(soundType === 'step') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (soundType === 'megaphone') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(700, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.6);
+                gainNode.gain.setValueAtTime(0.9, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+            } else if (soundType === 'teleport') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(2500, audioCtx.currentTime + 0.4);
+                gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
             }
-            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
         }
+        let lastFootstepTime = 0;
 
-        function init() {
+        // ==========================================
+        // التهيئة وبناء العالم (Initialization)
+        // ==========================================
+        function initGame() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050508, 0.08);
+            scene.fog = new THREE.FogExp2(0x050508, 0.07);
 
+            // إعداد الكاميرا لمنع الميلان (Gimbal Lock Fix)
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.rotation.order = 'YXZ'; // منع ميلان الشاشة لليمين واليسار (Gimbal Lock Fix)
+            camera.rotation.order = 'YXZ'; // ترتيب المحاور يمنع الـ Z-Roll
             camera.position.set(cellSize * 2, 1.6, cellSize * 2);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            scene.add(new THREE.AmbientLight(0x111115));
-            playerLight = new THREE.PointLight(0xffeedd, 1.2, 12);
-            camera.add(playerLight); scene.add(camera);
+            // الإضاءة
+            scene.add(new THREE.AmbientLight(0x15151a));
+            playerFlashlight = new THREE.PointLight(0xffeedd, 1.2, 14);
+            camera.add(playerFlashlight); 
+            scene.add(camera);
 
-            let floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }));
-            floor.rotation.x = -Math.PI / 2; scene.add(floor);
+            // الأرضية
+            let floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+            let floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), floorMat);
+            floor.rotation.x = -Math.PI / 2; 
+            scene.add(floor);
 
-            generateMazeWithDoors();
+            buildScatteredMaze();
+            spawnInitialEntities();
+
+            setupTouchHandlers();
+            startMainGameTimer();
+            window.addEventListener('touchstart', initAudioEngine, {once:true});
             
-            // الموارد (متوهجة)
-            spawnItem('blue', new THREE.Vector3(cellSize*3, 0.5, cellSize*2)); // قريب
-            spawnItem('blue', getEmptyPos()); spawnItem('blue', getEmptyPos());
-            spawnItem('pink', getEmptyPos()); spawnItem('pink', getEmptyPos());
-            spawnItem('green', getEmptyPos());
-            spawnWeapon(getEmptyPos());
-            spawnBattery(getEmptyPos()); spawnBattery(getEmptyPos()); spawnBattery(getEmptyPos());
-
-            // الوحش الأول (بعيد)
-            spawnMonster('white', new THREE.Vector3(cellSize*(mapSize-4), 0, cellSize*(mapSize-4)));
-
-            setupTouchControls();
-            startTimer();
-            window.addEventListener('touchstart', initAudio, {once:true});
-            animate();
+            animateGameLoop();
         }
 
-        function generateMazeWithDoors() {
+        function buildScatteredMaze() {
             const wallGeo = new THREE.BoxGeometry(cellSize, 5, cellSize);
             const wallMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
             for(let i=0; i<mapSize; i++) {
                 grid[i] = [];
                 for(let j=0; j<mapSize; j++) {
                     let isWall = (i===0 || i===mapSize-1 || j===0 || j===mapSize-1);
+                    // فراغات واسعة للمناورة
                     if(!isWall && i>3 && j>3) {
                         if(Math.random() > 0.85) isWall = true;
-                        if(i>0 && grid[i-1][j] === 1 && Math.random() > 0.4) isWall = false; 
+                        if(i>0 && grid[i-1][j] === 1 && Math.random() > 0.5) isWall = false; 
                     }
                     if(isWall) {
                         grid[i][j] = 1;
@@ -173,317 +201,401 @@
                 }
             }
 
-            // باب خشبي شمال شرق
-            let woodDoor = new THREE.Mesh(new THREE.BoxGeometry(4, 5, 0.5), new THREE.MeshStandardMaterial({color: 0x5c4033}));
-            woodDoor.position.set(cellSize*2, 2.5, cellSize*(mapSize-2));
-            scene.add(woodDoor);
+            // الباب الخشبي (الزاوية الشمالية الشرقية)
+            let woodenDoor = new THREE.Mesh(new THREE.BoxGeometry(4, 5, 0.5), new THREE.MeshStandardMaterial({color: 0x4a3018}));
+            woodenDoor.position.set(cellSize*2, 2.5, cellSize*(mapSize-2));
+            scene.add(woodenDoor);
 
-            // بوابة حمراء جنوب غرب (تفتح لاحقاً)
-            let redDoorGrp = new THREE.Group();
+            // البوابة الحمراء (الزاوية الجنوبية الغربية)
+            let redDoorGroup = new THREE.Group();
             let frame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5.5, 0.8), new THREE.MeshStandardMaterial({color: 0x000000}));
-            let door = new THREE.Mesh(new THREE.BoxGeometry(3.5, 5, 0.9), new THREE.MeshStandardMaterial({color: 0xff0000}));
-            redDoorGrp.add(frame); redDoorGrp.add(door);
-            redDoorGrp.position.set(cellSize*(mapSize-2), 2.5, cellSize*2);
-            scene.add(redDoorGrp);
+            let door = new THREE.Mesh(new THREE.BoxGeometry(3.5, 5, 0.9), new THREE.MeshStandardMaterial({color: 0xcc0000}));
+            redDoorGroup.add(frame); redDoorGroup.add(door);
+            redDoorGroup.position.set(cellSize*(mapSize-2), 2.5, cellSize*2);
+            scene.add(redDoorGroup);
         }
 
-        function spawnWeapon(pos) {
-            let grp = new THREE.Group();
-            let cone = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 16), new THREE.MeshStandardMaterial({color: 0xcccccc}));
+        function getSafeSpawnPos() {
+            let rx, rz;
+            do { 
+                rx = Math.floor(Math.random()*(mapSize-4))+2; 
+                rz = Math.floor(Math.random()*(mapSize-4))+2; 
+            } while(grid[rx][rz] === 1);
+            return new THREE.Vector3(rx*cellSize, 0, rz*cellSize);
+        }
+
+        // ==========================================
+        // تصميم الموارد 3D (3D Models)
+        // ==========================================
+        function createMegaphone() {
+            let group = new THREE.Group();
+            let cone = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 16), new THREE.MeshStandardMaterial({color: 0xdcdcdc, metalness: 0.8}));
             cone.rotation.x = Math.PI/2;
-            let handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.25), new THREE.MeshStandardMaterial({color: 0x222222}));
+            let handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3), new THREE.MeshStandardMaterial({color: 0x111111}));
             handle.position.set(0, -0.2, -0.1);
-            grp.add(cone); grp.add(handle);
-            let glow = new THREE.PointLight(0xffd700, 1.5, 5); grp.add(glow); // توهج
-            grp.position.set(pos.x, 0.5, pos.z); scene.add(grp);
-            items.push({ mesh: grp, type: 'weapon' });
+            group.add(cone); group.add(handle);
+            let glow = new THREE.PointLight(0xffd700, 1.5, 6); group.add(glow);
+            return group;
         }
 
-        function spawnBattery(pos) {
-            let grp = new THREE.Group();
-            let body = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.3), new THREE.MeshStandardMaterial({color: 0x111111}));
-            let tip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.05), new THREE.MeshStandardMaterial({color: 0x00ff00}));
-            tip.position.y = 0.17;
-            grp.add(body); grp.add(tip);
-            let glow = new THREE.PointLight(0xaaaaaa, 1, 3); grp.add(glow); // توهج
-            grp.position.set(pos.x, 0.5, pos.z); scene.add(grp);
-            items.push({ mesh: grp, type: 'ammo' });
+        function createBattery() {
+            let group = new THREE.Group();
+            let body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.35), new THREE.MeshStandardMaterial({color: 0x222222}));
+            let tip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06), new THREE.MeshStandardMaterial({color: 0x00ff00}));
+            tip.position.y = 0.2;
+            group.add(body); group.add(tip);
+            let glow = new THREE.PointLight(0xaaaaaa, 1, 4); group.add(glow);
+            return group;
         }
 
-        function spawnItem(type, pos) {
-            let color = type==='blue'?0x00ffff : type==='pink'?0xff69b4 : 0x00ff00;
-            let mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.25), new THREE.MeshBasicMaterial({color: color}));
-            let glow = new THREE.PointLight(color, 1.5, 5); mesh.add(glow); // توهج قوي
-            mesh.position.set(pos.x, 0.5, pos.z); scene.add(mesh);
-            items.push({ mesh: mesh, type: type });
+        function createCrystal(colorHex) {
+            let mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.25), new THREE.MeshStandardMaterial({color: colorHex, emissive: colorHex, emissiveIntensity: 0.5}));
+            let glow = new THREE.PointLight(colorHex, 2, 6); mesh.add(glow);
+            return mesh;
         }
 
-        function createMonsterModel(isRed) {
-            let grp = new THREE.Group();
-            let mat = new THREE.MeshStandardMaterial({ color: isRed ? 0xcc0000 : 0xcccccc, roughness: 0.4 });
-            let torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.2, 0.3), mat); torso.position.y = 2.6; grp.add(torso);
-            if(isRed) { let glow = new THREE.PointLight(0xff0000, 2, 12); glow.position.y = 2.5; grp.add(glow); }
-            return grp;
+        function spawnItemObject(type, pos) {
+            let mesh;
+            if(type === 'weapon') mesh = createMegaphone();
+            else if(type === 'ammo') mesh = createBattery();
+            else mesh = createCrystal(type === 'blue' ? 0x00ffff : type === 'pink' ? 0xff69b4 : 0x00ff00);
+            
+            mesh.position.set(pos.x, 0.5, pos.z);
+            scene.add(mesh);
+            itemsList.push({ mesh: mesh, type: type });
         }
 
-        function getEmptyPos() {
-            let x, z;
-            do { x = Math.floor(Math.random()*(mapSize-4))+2; z = Math.floor(Math.random()*(mapSize-4))+2; } while(grid[x][z] === 1);
-            return new THREE.Vector3(x*cellSize, 0, z*cellSize);
+        // ==========================================
+        // تصميم الوحوش 3D (Monster Models)
+        // ==========================================
+        function buildMonsterRig(isRed) {
+            let group = new THREE.Group();
+            let mat = new THREE.MeshStandardMaterial({ color: isRed ? 0x990000 : 0xcccccc, roughness: 0.5 });
+            let torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.4, 0.4), mat); torso.position.y = 2.8; group.add(torso);
+            let head = new THREE.Mesh(new THREE.SphereGeometry(0.3), mat); head.position.y = 4.3; group.add(head);
+            let armL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2), mat); armL.position.set(-0.4, 1.6, 0); group.add(armL);
+            let armR = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2), mat); armR.position.set(0.4, 1.6, 0); group.add(armR);
+            if(isRed) { let glow = new THREE.PointLight(0xff0000, 2.5, 12); glow.position.y = 2.8; group.add(glow); }
+            return group;
         }
 
-        function spawnMonster(type, pos) {
-            let mesh = createMonsterModel(type === 'red');
+        function spawnGameMonster(type, pos) {
+            let mesh = buildMonsterRig(type === 'red');
             mesh.position.copy(pos); scene.add(mesh);
-            monsters.push({ mesh: mesh, type: type, aggro: false, stunTimer: 0 });
+            monstersList.push({ mesh: mesh, type: type, isAggressive: false, stunTimeRemaining: 0 });
         }
 
-        function setupTouchControls() {
-            const joyZone = document.getElementById('joystick-zone');
-            const stick = document.getElementById('joystick-stick');
-            let jRect = joyZone.getBoundingClientRect(), jCX = jRect.left + jRect.width/2, jCY = jRect.top + jRect.height/2;
+        function spawnInitialEntities() {
+            // الكريستالات والموارد
+            spawnItemObject('blue', new THREE.Vector3(cellSize*3, 0.5, cellSize*2)); // قريب
+            spawnItemObject('blue', getSafeSpawnPos()); spawnItemObject('blue', getSafeSpawnPos());
+            spawnItemObject('pink', getSafeSpawnPos()); spawnItemObject('pink', getSafeSpawnPos());
+            spawnItemObject('green', getSafeSpawnPos()); // الأولى
+            spawnItemObject('weapon', getSafeSpawnPos());
+            spawnItemObject('ammo', getSafeSpawnPos()); spawnItemObject('ammo', getSafeSpawnPos()); spawnItemObject('ammo', getSafeSpawnPos());
+
+            // الوحش الأول (بعيد جداً)
+            spawnGameMonster('white', new THREE.Vector3(cellSize*(mapSize-4), 0, cellSize*(mapSize-4)));
+        }
+
+        // ==========================================
+        // نظام التحكم باللمس (Touch Controller)
+        // ==========================================
+        function setupTouchHandlers() {
+            const joyArea = document.getElementById('joystick-area');
+            const joyKnob = document.getElementById('joystick-knob');
+            let jRect = joyArea.getBoundingClientRect(), cx = jRect.left + jRect.width/2, cy = jRect.top + jRect.height/2;
 
             window.addEventListener('touchstart', (e) => {
-                for(let t of e.changedTouches) {
-                    if(t.target.closest('#joystick-zone')) { joyId = t.identifier; updateJoy(t); }
-                    else if(!t.target.closest('.no-cam') && camId === null) { camId = t.identifier; lastCamX = t.clientX; lastCamY = t.clientY; }
+                for(let i=0; i<e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    if(touch.target.closest('#joystick-area')) {
+                        joystickTouchId = touch.identifier; handleJoyMove(touch);
+                    } 
+                    // إذا لم تلمس الواجهة (no-cam)
+                    else if(!touch.target.closest('.interactive') && cameraTouchId === null) {
+                        cameraTouchId = touch.identifier;
+                        lastTouchCamX = touch.clientX; lastTouchCamY = touch.clientY;
+                    }
                 }
             }, {passive: false});
 
             window.addEventListener('touchmove', (e) => {
-                for(let t of e.changedTouches) {
-                    if(t.identifier === joyId) { e.preventDefault(); updateJoy(t); }
-                    else if(t.identifier === camId) {
+                for(let i=0; i<e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    if(touch.identifier === joystickTouchId) {
+                        e.preventDefault(); handleJoyMove(touch);
+                    } else if(touch.identifier === cameraTouchId) {
                         e.preventDefault();
-                        camera.rotation.y -= (t.clientX - lastCamX) * 0.005;
-                        camera.rotation.x -= (t.clientY - lastCamY) * 0.005;
-                        camera.rotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, camera.rotation.x)); // تقييد النظر لأعلى وأسفل
-                        lastCamX = t.clientX; lastCamY = t.clientY;
+                        camera.rotation.y -= (touch.clientX - lastTouchCamX) * 0.006;
+                        camera.rotation.x -= (touch.clientY - lastTouchCamY) * 0.006;
+                        // تثبيت زاوية النظر لأعلى وأسفل (Pitch Clamping)
+                        camera.rotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, camera.rotation.x));
+                        lastTouchCamX = touch.clientX; lastTouchCamY = touch.clientY;
                     }
                 }
             }, {passive: false});
 
             window.addEventListener('touchend', (e) => {
-                for(let t of e.changedTouches) {
-                    if(t.identifier === joyId) { joyId = null; joyVector = {x:0, y:0}; stick.style.transform = `translate(0px, 0px)`; player.isMoving = false; }
-                    else if(t.identifier === camId) { camId = null; }
+                for(let i=0; i<e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    if(touch.identifier === joystickTouchId) {
+                        joystickTouchId = null; player.isMoving = false;
+                        moveVector = {x:0, y:0}; joyKnob.style.transform = `translate(0px, 0px)`;
+                    } else if(touch.identifier === cameraTouchId) {
+                        cameraTouchId = null;
+                    }
                 }
             });
 
-            function updateJoy(t) {
-                player.isMoving = true;
-                let dx = t.clientX - jCX, dy = t.clientY - jCY;
+            function handleJoyMove(touch) {
+                let dx = touch.clientX - cx, dy = touch.clientY - cy;
                 let dist = Math.sqrt(dx*dx + dy*dy), maxDist = 35;
-                if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
-                stick.style.transform = `translate(${dx}px, ${dy}px)`;
-                joyVector = { x: dx/maxDist, y: dy/maxDist };
+                if(dist > 0) { // منع القسمة على صفر (Fix NaN Bug)
+                    player.isMoving = true;
+                    if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
+                    joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+                    moveVector = { x: dx/maxDist, y: dy/maxDist };
+                }
             }
 
-            document.getElementById('btn-run').addEventListener('touchstart', (e) => { e.preventDefault(); player.isRunning = true; });
-            document.getElementById('btn-run').addEventListener('touchend', (e) => { e.preventDefault(); player.isRunning = false; });
+            // الأزرار
+            const runBtn = document.getElementById('btn-run-fast');
+            runBtn.addEventListener('touchstart', (e) => { e.preventDefault(); player.isSprinting = true; runBtn.style.background = 'rgba(255,255,255,0.4)'; });
+            runBtn.addEventListener('touchend', (e) => { e.preventDefault(); player.isSprinting = false; runBtn.style.background = 'rgba(255,255,255,0.15)'; });
 
-            document.getElementById('inv-blue').addEventListener('touchstart', (e) => {
+            document.getElementById('item-blue').addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                if(player.crystals.blue > 0 && !player.blueActive) {
-                    player.crystals.blue--; updateInv();
-                    player.blueActive = true; player.blueTimeLeft = 120;
-                    playerLight.intensity = 3.5; playerLight.distance = 40;
+                if(player.inventory.blue > 0 && !player.blueCrystalActive) {
+                    player.inventory.blue--; refreshUI();
+                    player.blueCrystalActive = true; player.blueCrystalTimer = 120;
+                    playerFlashlight.intensity = 3.5; playerFlashlight.distance = 45;
                 }
             });
 
-            document.getElementById('btn-shoot').addEventListener('touchstart', (e) => {
+            document.getElementById('btn-use-weapon').addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                if(player.hasWeapon && player.ammo > 0) {
-                    player.ammo--; updateInv(); playSound('weapon');
-                    monsters.forEach(m => {
+                if(player.hasWeapon && player.inventory.ammo > 0) {
+                    player.inventory.ammo--; refreshUI(); playGameSound('megaphone');
+                    // رعب الوحوش البيضاء
+                    monstersList.forEach(m => {
                         if(m.type === 'white' && camera.position.distanceTo(m.mesh.position) <= 6) {
-                            m.stunTimer = 5; m.aggro = false; // يهرب المبيض فقط 5 ثواني
+                            m.stunTimeRemaining = 5; m.isAggressive = false; 
                         }
                     });
                 }
             });
         }
 
-        function updateInv() {
+        // ==========================================
+        // تحديث الواجهة والرسائل (UI Updates)
+        // ==========================================
+        function refreshUI() {
             ['pink', 'blue', 'green', 'ammo'].forEach(k => {
-                let ui = document.getElementById('inv-'+k);
-                let val = k==='ammo'? player.ammo : player.crystals[k];
-                if(val > 0 || (k==='blue' && player.blueActive)) { ui.style.display = 'flex'; ui.querySelector('.inv-count').innerText = val; }
-                else { ui.style.display = 'none'; }
+                let box = document.getElementById('item-'+k);
+                let count = player.inventory[k];
+                if(count > 0 || (k==='blue' && player.blueCrystalActive)) { box.style.display = 'flex'; box.querySelector('.item-count').innerText = count; }
+                else { box.style.display = 'none'; }
             });
             if(player.hasWeapon) {
-                document.getElementById('inv-weapon').style.display = 'flex';
-                document.getElementById('btn-shoot').style.display = 'flex';
+                document.getElementById('item-weapon').style.display = 'flex';
+                document.getElementById('item-weapon').querySelector('.item-count').innerText = "1";
+                document.getElementById('btn-use-weapon').style.display = 'flex';
             }
         }
 
-        function showMsgSequence(msgs) {
-            let el = document.getElementById('msg');
-            let time = 0;
-            msgs.forEach(m => {
-                setTimeout(() => { el.innerText = m; el.style.display = 'block'; }, time);
-                time += 3500;
-                setTimeout(() => { el.style.display = 'none'; }, time - 500);
+        function displayEventMessage(msgArray) {
+            let el = document.getElementById('event-message');
+            let delay = 0;
+            msgArray.forEach(txt => {
+                setTimeout(() => { el.innerText = txt; el.style.display = 'block'; }, delay);
+                delay += 3500;
+                setTimeout(() => { el.style.display = 'none'; }, delay - 500);
             });
         }
 
-        function startTimer() {
+        function startMainGameTimer() {
             setInterval(() => {
-                if(gameTime > 0 && !player.isDead) {
-                    gameTime--;
-                    let m = Math.floor(gameTime/60), s = gameTime%60;
-                    let timerEl = document.getElementById('timer');
-                    timerEl.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+                if(gameTimeRemaining > 0 && !player.isDead) {
+                    gameTimeRemaining--;
+                    let m = Math.floor(gameTimeRemaining/60), s = gameTimeRemaining%60;
+                    let tUI = document.getElementById('top-timer');
+                    tUI.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
                     
-                    if(gameTime === 120) {
-                        spawnMonster('white', new THREE.Vector3(cellSize*(mapSize-2), 0, cellSize*2)); // عند البوابة الحمراء
-                        spawnItem('green', getEmptyPos());
-                        showMsgSequence(["لقد ظهر الوحش الثاني!", "لقد ظهرت الكريستالة الخضراء!"]);
+                    if(gameTimeRemaining === 120) {
+                        spawnGameMonster('white', new THREE.Vector3(cellSize*(mapSize-2), 0, cellSize*2)); // عند البوابة الحمراء
+                        spawnItemObject('green', getSafeSpawnPos());
+                        displayEventMessage(["لقد ظهر الوحش الثاني!", "لقد ظهرت الكريستالة الخضراء!"]);
                     }
 
-                    if(gameTime === 30) {
-                        timerEl.style.color = '#ff3333'; timerEl.style.borderColor = '#ff3333';
-                        spawnMonster('red', getEmptyPos());
-                        showMsgSequence(["الرعب الحقيقي بدأ.. الوحش الأحمر قادم!"]);
+                    if(gameTimeRemaining === 30) {
+                        tUI.style.color = '#ff3333'; tUI.style.borderColor = '#ff3333';
+                        spawnGameMonster('red', getSafeSpawnPos());
+                        displayEventMessage(["الرعب الحقيقي بدأ.. الوحش الأحمر قادم!"]);
                     }
 
-                    if(player.blueActive) {
-                        player.blueTimeLeft--;
-                        let bm = Math.floor(player.blueTimeLeft/60), bs = player.blueTimeLeft%60;
-                        document.getElementById('blue-timer-txt').innerText = `${bm}:${bs<10?'0':''}${bs}`;
-                        if(player.blueTimeLeft <= 0) {
-                            player.blueActive = false; playerLight.intensity = 1.2; playerLight.distance = 12;
-                            document.getElementById('blue-timer-txt').innerText = ""; updateInv();
+                    if(player.blueCrystalActive) {
+                        player.blueCrystalTimer--;
+                        let bm = Math.floor(player.blueCrystalTimer/60), bs = player.blueCrystalTimer%60;
+                        document.getElementById('blue-time-display').innerText = `${bm}:${bs<10?'0':''}${bs}`;
+                        if(player.blueCrystalTimer <= 0) {
+                            player.blueCrystalActive = false; playerFlashlight.intensity = 1.2; playerFlashlight.distance = 14;
+                            document.getElementById('blue-time-display').innerText = ""; refreshUI();
                         }
                     }
                 }
             }, 1000);
         }
 
-        function canMoveTo(nx, nz) {
-            let gx = Math.round(nx / cellSize), gz = Math.round(nz / cellSize);
+        // ==========================================
+        // التصادم والحركة (Collision & Math)
+        // ==========================================
+        function checkCollision(nextX, nextZ) {
+            let gx = Math.round(nextX / cellSize), gz = Math.round(nextZ / cellSize);
             if(gx < 0 || gx >= mapSize || gz < 0 || gz >= mapSize) return false;
             return grid[gx][gz] === 0;
         }
 
-        let deadBody = null;
+        let corpseMesh = null;
 
-        function animate() {
-            requestAnimationFrame(animate);
-            let delta = Math.min(clock.getDelta(), 0.1);
+        // ==========================================
+        // حلقة اللعب الرئيسية (Main Render Loop)
+        // ==========================================
+        function animateGameLoop() {
+            requestAnimationFrame(animateGameLoop);
+            let dt = Math.min(clock.getDelta(), 0.1);
 
-            // الموت
+            // 1. كاميرا الموت
             if(player.isDead) {
-                player.deathTimer += delta;
-                if(!deadBody) {
-                    deadBody = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.5, 0.3), new THREE.MeshStandardMaterial({color: 0xddccaa}));
-                    deadBody.rotation.x = Math.PI/2; deadBody.position.copy(camera.position); deadBody.position.y = 0.2; scene.add(deadBody);
-                    document.getElementById('ui').style.display = 'none';
+                player.deathAnimationTime += dt;
+                if(!corpseMesh) {
+                    corpseMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.8, 0.3), new THREE.MeshStandardMaterial({color: 0xd2b48c}));
+                    corpseMesh.rotation.x = Math.PI/2; corpseMesh.position.copy(camera.position); corpseMesh.position.y = 0.2; scene.add(corpseMesh);
+                    document.getElementById('game-ui').style.display = 'none';
                 }
-                camera.position.set(deadBody.position.x + Math.sin(player.deathTimer*1.5)*4, 2.5, deadBody.position.z + Math.cos(player.deathTimer*1.5)*4);
-                camera.lookAt(deadBody.position);
-                if(player.deathTimer > 3) document.getElementById('death-screen').style.display = 'flex';
+                camera.position.set(corpseMesh.position.x + Math.sin(player.deathAnimationTime*1.2)*4.5, 3, corpseMesh.position.z + Math.cos(player.deathAnimationTime*1.2)*4.5);
+                camera.lookAt(corpseMesh.position);
+                if(player.deathAnimationTime > 3.5) document.getElementById('game-over-screen').style.display = 'flex';
                 renderer.render(scene, camera); return;
             }
 
-            // حركة اللاعب
-            if(player.isMoving && player.isRunning && player.stamina > 0) player.stamina -= 25 * delta;
-            else player.stamina = Math.min(player.maxStamina, player.stamina + 15 * delta);
+            // 2. تحديث التحمل والسرعة
+            if(player.isMoving && player.isSprinting && player.currentStamina > 0) player.currentStamina -= 25 * dt;
+            else player.currentStamina = Math.min(player.maxStamina, player.currentStamina + 15 * dt);
             
-            document.getElementById('stamina-fill').style.width = (player.stamina / player.maxStamina)*100 + '%';
-            document.getElementById('stamina-text').innerText = `${Math.floor(player.stamina)} / ${player.maxStamina}`;
-            document.getElementById('stamina-container').style.width = (120 * (player.maxStamina/100)) + 'px';
+            document.getElementById('stamina-progress').style.width = (player.currentStamina / player.maxStamina)*100 + '%';
+            document.getElementById('stamina-label').innerText = `${Math.floor(player.currentStamina)} / ${player.maxStamina}`;
+            document.getElementById('stamina-wrapper').style.width = (120 * (player.maxStamina/100)) + 'px';
 
-            player.currentSpeed = player.baseSpeed * (player.isRunning && player.stamina > 0 ? 1.8 : 1);
+            player.currentSpeed = player.baseWalkSpeed * (player.isSprinting && player.currentStamina > 0 ? 1.8 : 1);
 
-            if(player.isMoving) {
+            // 3. حركة اللاعب
+            if(player.isMoving && (moveVector.x !== 0 || moveVector.y !== 0)) {
                 let forward = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion); forward.y=0; forward.normalize();
                 let right = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion); right.y=0; right.normalize();
-                let dir = new THREE.Vector3().addScaledVector(right, joyVector.x).addScaledVector(forward, -joyVector.y).normalize();
                 
-                let nx = camera.position.x + dir.x * player.currentSpeed * delta;
-                let nz = camera.position.z + dir.z * player.currentSpeed * delta;
-                if(canMoveTo(nx, camera.position.z)) camera.position.x = nx;
-                if(canMoveTo(camera.position.x, nz)) camera.position.z = nz;
+                let direction = new THREE.Vector3().addScaledVector(right, moveVector.x).addScaledVector(forward, -moveVector.y);
+                if(direction.lengthSq() > 0) { // الأمان لتجنب الـ NaN
+                    direction.normalize();
+                    let targetX = camera.position.x + direction.x * player.currentSpeed * dt;
+                    let targetZ = camera.position.z + direction.z * player.currentSpeed * dt;
 
-                if(clock.elapsedTime - lastStepTime > (player.isRunning?0.3:0.6)) { playSound('footstep'); lastStepTime = clock.elapsedTime; }
+                    if(checkCollision(targetX, camera.position.z)) camera.position.x = targetX;
+                    if(checkCollision(camera.position.x, targetZ)) camera.position.z = targetZ;
+
+                    if(clock.elapsedTime - lastFootstepTime > (player.isSprinting?0.3:0.55)) { 
+                        playGameSound('step'); lastFootstepTime = clock.elapsedTime; 
+                    }
+                }
             }
 
-            // الموارد المتوهجة تدور
-            for(let i=items.length-1; i>=0; i--) {
-                let it = items[i]; it.mesh.rotation.y += Math.PI * delta;
-                if(camera.position.distanceTo(it.mesh.position) < 2) {
+            // 4. دوران والتقاط الموارد
+            for(let i=itemsList.length-1; i>=0; i--) {
+                let it = itemsList[i]; it.mesh.rotation.y += Math.PI * dt;
+                if(camera.position.distanceTo(it.mesh.position) < 2.5) {
                     if(it.type === 'green') {
-                        player.greenCount++;
-                        player.maxStamina = player.greenCount === 1 ? 140 : 160;
-                        player.baseSpeed = player.origSpeed * (player.greenCount === 1 ? 1.2 : 1.4);
-                        player.stamina = player.maxStamina; player.crystals.green++;
+                        player.greenUpgrades++;
+                        player.maxStamina = player.greenUpgrades === 1 ? 140 : 160;
+                        player.baseWalkSpeed = 4 * (player.greenUpgrades === 1 ? 1.2 : 1.4);
+                        player.currentStamina = player.maxStamina; player.inventory.green++;
+                        displayEventMessage(["زادت سرعتك وطاقتك!"]);
                     } else if(it.type === 'weapon') player.hasWeapon = true;
-                    else if(it.type === 'ammo') player.ammo++;
-                    else player.crystals[it.type]++;
-                    updateInv(); scene.remove(it.mesh); items.splice(i, 1);
+                    else if(it.type === 'ammo') player.inventory.ammo++;
+                    else player.inventory[it.type]++;
+                    
+                    refreshUI(); scene.remove(it.mesh); itemsList.splice(i, 1);
                 }
             }
 
-            // الوحوش
-            monsters.forEach(m => {
-                let dist = camera.position.distanceTo(m.mesh.position);
-                if(m.stunTimer > 0) {
-                    m.stunTimer -= delta;
+            // 5. الذكاء الاصطناعي للوحوش
+            monstersList.forEach(m => {
+                let distToPlayer = camera.position.distanceTo(m.mesh.position);
+                
+                if(m.stunTimeRemaining > 0) {
+                    m.stunTimeRemaining -= dt;
                     m.mesh.lookAt(camera.position); m.mesh.rotation.y += Math.PI; 
-                    m.mesh.translateZ(player.origSpeed * 1.5 * delta); // يهرب سريعاً
+                    m.mesh.translateZ(4 * 1.5 * dt); // الهرب
                 } else {
-                    let hearDist = player.isRunning ? 20 : (player.isMoving ? 8 : 3);
-                    if(dist < hearDist) m.aggro = true; else if(dist > hearDist*2) m.aggro = false;
+                    let hearingRange = player.isSprinting ? 22 : (player.isMoving ? 10 : 4);
+                    if(distToPlayer < hearingRange) m.isAggressive = true; else if(distToPlayer > hearingRange * 2) m.isAggressive = false;
 
-                    let speed = player.origSpeed * (m.aggro ? 1.4 : 1.1) * delta;
-                    if(m.type === 'red') speed *= 1.2; // الأحمر أسرع قليلاً
+                    let moveSpeed = 4 * (m.isAggressive ? 1.4 : 1.1) * dt;
+                    if(m.type === 'red') moveSpeed *= 1.25;
 
-                    if(m.aggro) { m.mesh.lookAt(camera.position.x, m.mesh.position.y, camera.position.z); m.mesh.translateZ(speed); }
-                    else { m.mesh.translateZ(speed*0.5); if(Math.random()<0.02) m.mesh.rotation.y += Math.random()*Math.PI; }
+                    if(m.isAggressive) { m.mesh.lookAt(camera.position.x, m.mesh.position.y, camera.position.z); m.mesh.translateZ(moveSpeed); }
+                    else { m.mesh.translateZ(moveSpeed*0.5); if(Math.random()<0.03) m.mesh.rotation.y += (Math.random()-0.5)*Math.PI; }
                 }
 
-                if(dist < 1.5) {
-                    if(player.crystals.pink > 0) {
-                        player.crystals.pink--; updateInv(); playSound('teleport');
-                        let safePos = getEmptyPos(); camera.position.set(safePos.x, 1.6, safePos.z);
-                        m.stunTimer = 2; m.aggro = false; // الوحش يضيع
+                // لمس الوحش (الكريستالة الوردية أو الموت)
+                if(distToPlayer < 1.8) {
+                    if(player.inventory.pink > 0) {
+                        player.inventory.pink--; refreshUI(); playGameSound('teleport');
+                        let safeSpot = getSafeSpawnPos(); camera.position.set(safeSpot.x, 1.6, safeSpot.z);
+                        m.stunTimeRemaining = 2; m.isAggressive = false;
+                        displayEventMessage(["استخدمت الكريستالة الوردية للنجاة!"]);
                     } else { player.isDead = true; }
                 }
             });
 
-            // الرادار (الآن يظهر الموارد والوحوش)
-            const canvas = document.getElementById('minimap-canvas'), ctx = canvas.getContext('2d');
-            ctx.clearRect(0,0,90,90); ctx.save(); ctx.translate(45,45); ctx.rotate(camera.rotation.y);
+            // 6. الرادار الذكي والمصغر
+            const radarCanvas = document.getElementById('radar-canvas'), ctx = radarCanvas.getContext('2d');
+            ctx.clearRect(0,0,85,85); ctx.save(); ctx.translate(42.5,42.5); ctx.rotate(camera.rotation.y);
             
-            // جدران
             ctx.fillStyle = "rgba(255,255,255,0.3)";
             walls.forEach(w => {
-                let dx = (w.position.x - camera.position.x), dz = (w.position.z - camera.position.z);
-                if(Math.abs(dx)<45 && Math.abs(dz)<45) ctx.fillRect(dx-2, dz-2, 4, 4);
+                let dx = (w.position.x - camera.position.x)*1.2, dz = (w.position.z - camera.position.z)*1.2;
+                if(Math.abs(dx)<42 && Math.abs(dz)<42) ctx.fillRect(dx-2, dz-2, 4, 4);
             });
-            // موارد (نقاط ملونة)
-            items.forEach(it => {
-                let dx = (it.mesh.position.x - camera.position.x), dz = (it.mesh.position.z - camera.position.z);
-                if(Math.abs(dx)<45 && Math.abs(dz)<45) {
-                    ctx.fillStyle = it.type==='blue'?'cyan':it.type==='pink'?'hotpink':it.type==='green'?'lime':it.type==='weapon'?'gold':'gray';
-                    ctx.beginPath(); ctx.arc(dx, dz, 2, 0, Math.PI*2); ctx.fill();
+            
+            itemsList.forEach(it => {
+                let dx = (it.mesh.position.x - camera.position.x)*1.2, dz = (it.mesh.position.z - camera.position.z)*1.2;
+                if(Math.abs(dx)<42 && Math.abs(dz)<42) {
+                    ctx.fillStyle = it.type==='blue'?'#00ffff':it.type==='pink'?'#ff69b4':it.type==='green'?'#00ff00':it.type==='weapon'?'#ffd700':'#aaaaaa';
+                    ctx.beginPath(); ctx.arc(dx, dz, 2.5, 0, Math.PI*2); ctx.fill();
                 }
             });
-            // وحوش (مربعات بيضاء/حمراء)
-            monsters.forEach(m => {
-                let dx = (m.mesh.position.x - camera.position.x), dz = (m.mesh.position.z - camera.position.z);
-                if(Math.abs(dx)<45 && Math.abs(dz)<45) {
-                    ctx.fillStyle = m.type === 'red' ? 'red' : 'white';
-                    ctx.fillRect(dx-2, dz-2, 4, 4);
+            
+            monstersList.forEach(m => {
+                let dx = (m.mesh.position.x - camera.position.x)*1.2, dz = (m.mesh.position.z - camera.position.z)*1.2;
+                if(Math.abs(dx)<42 && Math.abs(dz)<42) {
+                    ctx.fillStyle = m.type === 'red' ? '#ff0000' : '#ffffff';
+                    ctx.fillRect(dx-2.5, dz-2.5, 5, 5);
                 }
             });
             ctx.restore();
-            ctx.fillStyle = "#0f0"; ctx.beginPath(); ctx.moveTo(45, 42); ctx.lineTo(42, 48); ctx.lineTo(48, 48); ctx.fill();
+            ctx.fillStyle = "#00ff00"; ctx.beginPath(); ctx.moveTo(42.5, 38); ctx.lineTo(39, 45); ctx.lineTo(46, 45); ctx.fill();
 
             renderer.render(scene, camera);
         }
-        init();
+        
+        // تعديل الأبعاد عند دوران الشاشة
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        initGame();
     </script>
 </body>
 </html>
