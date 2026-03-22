@@ -3,149 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Lord Naif Chronicles</title>
+    <title>Lord Naif - Premium Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .menu-box { background: #1a1a1a; padding: 20px; border: 2px solid gold; border-radius: 15px; width: 80%; max-width: 400px; }
-        .start-btn { background: gold; color: black; padding: 15px 30px; border: none; border-radius: 5px; font-weight: bold; font-size: 20px; margin-top: 20px; cursor: pointer; }
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-        #minimap { position: absolute; top: 10px; left: 10px; width: 100px; height: 100px; border: 2px solid #555; border-radius: 50%; background: rgba(0,255,0,0.1); overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        #rotate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 1000; text-align: center; font-size: 20px; }
+        @media screen and (orientation: landscape) { #rotate { display: none; } }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        
+        /* الرادار الأنيق */
+        #minimap { position: absolute; top: 20px; left: 20px; width: 130px; height: 130px; border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 50%; background: rgba(0, 0, 0, 0.5); overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
         #minimap-canvas { width: 100%; height: 100%; }
-        #stats { position: absolute; top: 10px; right: 10px; text-align: right; font-size: 14px; }
-        .btn-action { position: absolute; bottom: 20px; right: 20px; width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        #btn-shoot { bottom: 100px; background: rgba(255,0,0,0.3); border-color: red; }
-        #msg { position: absolute; top: 30%; width: 100%; text-align: center; color: yellow; font-size: 18px; display: none; }
+        
+        /* شريط التحمل (Stamina) */
+        #stamina-container { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 250px; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.3); }
+        #stamina-bar { width: 100%; height: 100%; background: #0f0; transition: width 0.1s linear, background-color 0.3s; }
+        
+        /* أزرار التحكم السلسة */
+        .btn { position: absolute; pointer-events: auto; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; backdrop-filter: blur(5px); }
+        #btn-move { bottom: 30px; left: 30px; width: 80px; height: 80px; }
+        #btn-run { bottom: 30px; right: 30px; width: 80px; height: 80px; }
+        
+        #death-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(100,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; color: #fff; z-index: 100; pointer-events: auto; }
+        .restart-btn { margin-top: 20px; padding: 15px 30px; background: transparent; color: #fff; border: 2px solid #fff; cursor: pointer; font-size: 18px; font-weight: bold; border-radius: 5px; }
     </style>
 </head>
 <body>
-
-    <div id="overlay">
-        <div class="menu-box">
-            <h2>مرحباً يا لورد نايف</h2>
-            <p>اختر معدات البداية:</p>
-            <div style="font-size: 14px; margin-bottom: 10px;">
-                💎 كريستالة بنفسجية (مفعلة) <br>
-                🔫 سلاح دفاعي + 10 ذخيرة
-            </div>
-            <button class="start-btn" onclick="startGame()">ابدأ اللعب الآن ⚔️</button>
-        </div>
-        <p style="margin-top: 10px; font-size: 12px;">(اقلب الجوال بالعرض لتجربة أفضل)</p>
+    <div id="rotate">استدر بالجوال للوضع العرضي يا لورد 📱</div>
+    
+    <div id="ui">
+        <div id="minimap"><canvas id="minimap-canvas" width="130" height="130"></canvas></div>
+        <div id="stamina-container"><div id="stamina-bar"></div></div>
+        <div id="btn-move" class="btn">تقدم</div>
+        <div id="btn-run" class="btn">اركض</div>
     </div>
 
-    <div id="ui">
-        <div id="minimap"><canvas id="minimap-canvas"></canvas></div>
-        <div id="stats">
-            الذخيرة: <span id="ammo">10</span> <br>
-            التحمل: <span id="stamina">100</span>%
-        </div>
-        <div id="msg"></div>
-        <div id="btn-run" class="btn-action">اركض</div>
-        <div id="btn-shoot" class="btn-action">إطلاق</div>
+    <div id="death-screen">
+        <h1 style="font-size: 40px; text-shadow: 2px 2px #000;">لقد نالك الوحش!</h1>
+        <button class="restart-btn" onclick="location.reload()">انهض من جديد</button>
     </div>
 
     <script>
-        let scene, camera, renderer, clock, player = { speed: 0.12, stamina: 100, ammo: 10, isRunning: false, hasPurple: true };
-        let walls = [], monsters = [], items = [], mazeSize = 20;
+        let scene, camera, renderer, clock;
+        let walls = [], monster;
+        
+        // إعدادات اللاعب الفيزيائية
+        let player = {
+            stamina: 100,
+            isMoving: false,
+            isRunning: false,
+            dead: false,
+            walkSpeed: 2.0,
+            runSpeed: 4.5,
+            bobbingTimer: 0
+        };
 
-        function startGame() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('ui').style.display = 'block';
-            init();
-        }
+        // التحكم باللمس
+        let lookTouchId = null;
+        let lastTouchX = 0;
 
         function init() {
+            // المشهد والضباب (الجودة العالية)
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.15);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(2, 1.6, 2);
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            scene.background = new THREE.Color(0x050508);
+            scene.fog = new THREE.FogExp2(0x050508, 0.12);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 1.6, 0); // طول اللاعب
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // جودة عالية بدون تعليق
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            // الإضاءة
-            let light = new THREE.PointLight(0xffffff, 1, 20);
-            camera.add(light);
+            // الإضاءة (كشاف اللاعب)
+            let ambientLight = new THREE.AmbientLight(0x111122);
+            scene.add(ambientLight);
+            
+            let torchLight = new THREE.PointLight(0xffaa55, 1.5, 12);
+            camera.add(torchLight); // الكشاف يتحرك مع الكاميرا
             scene.add(camera);
 
-            // بناء المتاهة
-            const wallGeo = new THREE.BoxGeometry(2, 4, 2);
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
-            for(let i=0; i<mazeSize; i++) {
-                for(let j=0; j<mazeSize; j++) {
-                    if(i==0 || i==mazeSize-1 || j==0 || j==mazeSize-1 || (Math.random() > 0.8 && !(i<3 && j<3))) {
-                        let wall = new THREE.Mesh(wallGeo, wallMat);
-                        wall.position.set(i*2, 2, j*2);
-                        scene.add(wall);
-                        walls.push(new THREE.Vector2(i*2, j*2));
-                    }
-                }
-            }
-
-            // الأرضية
-            let floor = new THREE.Mesh(new THREE.PlaneGeometry(100,100), new THREE.MeshStandardMaterial({color: 0x111111}));
-            floor.rotation.x = -Math.PI/2;
+            // الأرضية (شبكة معدنية أنيقة)
+            let floorGeo = new THREE.PlaneGeometry(100, 100, 50, 50);
+            let floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a, roughness: 0.8, metalness: 0.2, wireframe: false 
+            });
+            let floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // إضافة الكريستالة البنفسجية
-            let cry = new THREE.Mesh(new THREE.OctahedronGeometry(0.3), new THREE.MeshBasicMaterial({color: 0x800080}));
-            cry.position.set(10, 0.5, 10);
-            scene.add(cry);
+            // شبكة وهمية فوق الأرضية لتعطي طابع الخيال العلمي/الرعب
+            let grid = new THREE.GridHelper(100, 50, 0x000000, 0x222222);
+            grid.position.y = 0.01;
+            scene.add(grid);
+
+            // بناء المتاهة (خامات ممتازة تتأثر بالضوء)
+            let wallGeo = new THREE.BoxGeometry(2, 4, 2);
+            let wallMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9 });
+            
+            for(let i=0; i<40; i++) {
+                let wx = Math.floor(Math.random() * 20 - 10) * 2;
+                let wz = Math.floor(Math.random() * 20 - 10) * 2;
+                if(Math.abs(wx) < 4 && Math.abs(wz) < 4) continue; // مساحة أمان للبداية
+                
+                let wall = new THREE.Mesh(wallGeo, wallMat);
+                wall.position.set(wx, 2, wz);
+                scene.add(wall);
+                walls.push(wall);
+            }
+
+            // الوحش الأحمر (مجسم مضيء يطفو)
+            let monsterGeo = new THREE.SphereGeometry(0.5, 16, 16);
+            let monsterMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xaa0000, roughness: 0.2 });
+            monster = new THREE.Mesh(monsterGeo, monsterMat);
+            monster.position.set(10, 1.5, 10);
+            
+            // ضوء أحمر يحيط بالوحش
+            let monsterLight = new THREE.PointLight(0xff0000, 2, 8);
+            monster.add(monsterLight);
+            scene.add(monster);
 
             setupControls();
             animate();
         }
 
         function setupControls() {
-            document.getElementById('btn-run').ontouchstart = () => player.isRunning = true;
-            document.getElementById('btn-run').ontouchend = () => player.isRunning = false;
-            document.getElementById('btn-shoot').onclick = () => {
-                if(player.ammo > 0) {
-                    player.ammo--;
-                    document.getElementById('ammo').innerText = player.ammo;
-                    showMsg("تم إطلاق النار! 🔫");
-                }
-            };
-            window.addEventListener('touchmove', (e) => {
-                if(e.touches[0].clientX > window.innerWidth/2) camera.rotation.y -= e.movementX * 0.008;
-            });
-        }
+            // أزرار الحركة
+            const btnMove = document.getElementById('btn-move');
+            const btnRun = document.getElementById('btn-run');
 
-        function showMsg(m) {
-            let el = document.getElementById('msg');
-            el.innerText = m; el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 2000);
+            btnMove.ontouchstart = (e) => { e.preventDefault(); player.isMoving = true; };
+            btnMove.ontouchend = (e) => { e.preventDefault(); player.isMoving = false; };
+            
+            btnRun.ontouchstart = (e) => { e.preventDefault(); player.isRunning = true; player.isMoving = true; };
+            btnRun.ontouchend = (e) => { e.preventDefault(); player.isRunning = false; player.isMoving = false; };
+
+            // الالتفاف السلس (نصف الشاشة العلوي أو الأيمن)
+            window.addEventListener('touchstart', (e) => {
+                let touch = e.touches[0];
+                if(touch.clientY < window.innerHeight - 100) { // بعيداً عن الأزرار
+                    lookTouchId = touch.identifier;
+                    lastTouchX = touch.clientX;
+                }
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === lookTouchId) {
+                        let deltaX = e.touches[i].clientX - lastTouchX;
+                        camera.rotation.y -= deltaX * 0.005; // حساسية الالتفاف
+                        lastTouchX = e.touches[i].clientX;
+                    }
+                }
+            });
+
+            window.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === lookTouchId) {
+                        lookTouchId = null;
+                    }
+                }
+            });
         }
 
         function animate() {
+            if(player.dead) return;
             requestAnimationFrame(animate);
-            let moveSpeed = player.speed * (player.isRunning ? 1.7 : 1);
-            camera.translateZ(-moveSpeed);
+            let delta = Math.min(clock.getDelta(), 0.1); // منع القفزات عند التعليق
 
-            // الرادار (الخريطة)
-            const canvas = document.getElementById('minimap-canvas'), ctx = canvas.getContext('2d');
-            ctx.clearRect(0,0,100,100);
-            ctx.fillStyle = "white";
-            ctx.fillRect(50, 50, 4, 4); // اللاعب في المركز
+            // إدارة التحمل (Stamina System)
+            if(player.isRunning && player.stamina > 0) {
+                player.stamina -= 30 * delta; // يستهلك التحمل
+            } else {
+                player.isRunning = false;
+                player.stamina += 15 * delta; // يسترجع التحمل
+            }
+            player.stamina = Math.max(0, Math.min(100, player.stamina));
             
-            // رسم الجدران في الرادار
-            ctx.fillStyle = "rgba(255,255,255,0.3)";
-            walls.forEach(w => {
-                let dx = (w.x - camera.position.x) * 2;
-                let dz = (w.y - camera.position.z) * 2;
-                if(Math.abs(dx) < 50 && Math.abs(dz) < 50) ctx.fillRect(50+dx, 50+dz, 3, 3);
-            });
+            // تحديث شريط التحمل
+            let bar = document.getElementById('stamina-bar');
+            bar.style.width = player.stamina + '%';
+            bar.style.backgroundColor = player.stamina < 20 ? '#f00' : (player.stamina < 50 ? '#ff0' : '#0f0');
+
+            // حركة اللاعب (فيزيائية وسلسة)
+            let currentSpeed = player.isRunning && player.stamina > 0 ? player.runSpeed : player.walkSpeed;
+            if(player.isMoving) {
+                camera.translateZ(-currentSpeed * delta);
+                
+                // تأثير اهتزاز الكاميرا (Head Bobbing)
+                player.bobbingTimer += delta * (player.isRunning ? 15 : 8);
+                camera.position.y = 1.6 + Math.sin(player.bobbingTimer) * 0.08;
+            } else {
+                // عودة الكاميرا للوضع الطبيعي بنعومة
+                camera.position.y += (1.6 - camera.position.y) * 0.1;
+            }
+
+            // ذكاء الوحش (يطفو ويطارد ببطء مرعب)
+            monster.position.y = 1.5 + Math.sin(clock.elapsedTime * 2) * 0.3; // الطفو
+            monster.lookAt(camera.position.x, monster.position.y, camera.position.z);
+            monster.translateZ(1.2 * delta); // سرعة الوحش
+
+            // التحقق من الموت
+            if(camera.position.distanceTo(monster.position) < 1.2) {
+                player.dead = true;
+                document.getElementById('death-screen').style.display = 'flex';
+            }
+
+            // تحديث الرادار
+            updateRadar();
 
             renderer.render(scene, camera);
         }
+
+        function updateRadar() {
+            const canvas = document.getElementById('minimap-canvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 3; // مقياس التكبير
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(-camera.rotation.y); // تدوير الخريطة مع اللاعب
+
+            // رسم الجدران
+            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+            walls.forEach(w => {
+                let dx = (w.position.x - camera.position.x) * scale;
+                let dz = (w.position.z - camera.position.z) * scale;
+                if(Math.abs(dx) < centerX && Math.abs(dz) < centerY) {
+                    ctx.fillRect(dx - 3, dz - 3, 6, 6);
+                }
+            });
+
+            // رسم الوحش (نقطة حمراء)
+            let mdx = (monster.position.x - camera.position.x) * scale;
+            let mdz = (monster.position.z - camera.position.z) * scale;
+            if(Math.abs(mdx) < centerX && Math.abs(mdz) < centerY) {
+                ctx.fillStyle = "#ff0000";
+                ctx.beginPath();
+                ctx.arc(mdx, mdz, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // رسم اللاعب (مثلث يشير للأمام)
+            ctx.fillStyle = "#00ff00";
+            ctx.beginPath();
+            ctx.moveTo(0, -6);
+            ctx.lineTo(-4, 4);
+            ctx.lineTo(4, 4);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // تحديث أبعاد الشاشة عند التدوير
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        init();
     </script>
 </body>
 </html>
