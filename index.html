@@ -3,226 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Lord Naif Chronicles - V3</title>
+    <title>Lord Naif - Stable Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; touch-action: none; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .menu-box { background: #1a1a1a; padding: 20px; border: 2px solid gold; border-radius: 15px; width: 85%; max-width: 400px; max-height: 70vh; overflow-y: auto; }
-        .start-btn { background: gold; color: black; padding: 15px 30px; border: none; border-radius: 5px; font-weight: bold; font-size: 20px; margin-top: 20px; cursor: pointer; }
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 10; }
-        #minimap { position: absolute; top: 10px; left: 10px; width: 120px; height: 120px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; background: rgba(0,0,0,0.7); overflow: hidden; }
-        #minimap-canvas { width: 100%; height: 100%; }
-        #stats { position: absolute; top: 10px; right: 10px; text-align: right; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
-        .btn-action { position: absolute; bottom: 20px; right: 20px; width: 75px; height: 75px; background: rgba(255,255,255,0.15); border: 2px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
-        #btn-shoot { bottom: 110px; background: rgba(255,0,0,0.2); border-color: red; display: none; }
-        #msg { position: absolute; top: 20%; width: 100%; text-align: center; color: yellow; font-size: 20px; display: none; text-shadow: 2px 2px #000; font-weight: bold; }
-        #invade-msg { position: absolute; top: 40%; width: 100%; text-align: center; color: rgba(255, 0, 0, 0.4); font-size: 40px; display: none; pointer-events: none; font-weight: bold; text-shadow: 2px 2px #000; z-index: 5; }
-        #timer { color: white; transition: color 0.5s; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: sans-serif; user-select: none; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .btn { position: absolute; bottom: 30px; width: 80px; height: 80px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; pointer-events: auto; }
+        #btn-up { right: 30px; }
+        #btn-down { left: 30px; }
+        #info { position: absolute; top: 20px; left: 20px; color: #0f0; font-size: 16px; font-weight: bold; }
+        #rotate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 1000; text-align: center; }
+        @media screen and (orientation: landscape) { #rotate { display: none; } }
     </style>
 </head>
 <body>
-
-    <div id="overlay">
-        <div class="menu-box">
-            <h2 style="color: gold;">مرحباً يا لورد نايف</h2>
-            <p style="text-align: right; font-size: 14px; line-height: 1.6;">
-                أنت الآن داخل المتاهة الملعونة.<br>
-                <b>المهام:</b><br>
-                - ابحث عن الرشاش 🔫 (يحتوي على طلقة واحدة).<br>
-                - ابحث عن صناديق الذخيرة المخفية.<br>
-                - ابحث عن الكريستالات السحرية (وردية، زرقاء، خضراء).<br>
-                - احذر.. الغزو قادم!
-            </p>
-            <button class="start-btn" onclick="startGame()">اقتحم المتاهة ⚔️</button>
-        </div>
-    </div>
-
+    <div id="rotate">يرجى تدوير الجوال للوضع العرضي 📱</div>
     <div id="ui">
-        <div id="minimap"><canvas id="minimap-canvas"></canvas></div>
-        <div id="stats">
-            الوقت: <span id="timer">03:00</span> <br>
-            الذخيرة: <span id="ammo">0</span> <br>
-            التحمل: <span id="stamina">100</span>%
-        </div>
-        <div id="msg"></div>
-        <div id="invade-msg">تم غزو المتاهة</div>
-        <div id="btn-run" class="btn-action">اركض</div>
-        <div id="btn-shoot" class="btn-action">إطلاق</div>
+        <div id="info">لورد نايف: المتاهة المستقرة 🟢<br>اسحب الشاشة للالتفاف</div>
+        <div id="btn-up" class="btn">أمام</div>
+        <div id="btn-down" class="btn">خلف</div>
     </div>
 
     <script>
         let scene, camera, renderer, clock;
-        let player = { speed: 0.12, stamina: 100, ammo: 0, hasWeapon: false, isRunning: false, dead: false };
-        let walls = [], items = [], monsters = [], gameTime = 180; // 3 دقائق للتجربة
-
-        function startGame() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('ui').style.display = 'block';
-            init();
-        }
+        let moveForward = false, moveBackward = false;
+        let lastX = null;
 
         function init() {
+            // تهيئة المشهد الأساسي بدون تعقيد
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.12);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(2, 1.6, 2);
-            
+            scene.background = new THREE.Color(0x111111);
+            scene.fog = new THREE.Fog(0x111111, 1, 20); // ضباب لإخفاء نهاية الخريطة
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 1.5, 0);
+
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            // إضاءة الكشاف
-            let spotLight = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/5);
-            camera.add(spotLight); camera.add(spotLight.target); spotLight.target.position.set(0,0,-1);
-            scene.add(camera);
+            // أرضية بسيطة
+            let floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0x222222 }));
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
 
-            // بناء المتاهة
-            const wallGeo = new THREE.BoxGeometry(2, 4, 2);
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-            for(let i=0; i<25; i++) {
-                for(let j=0; j<25; j++) {
-                    if(i==0 || i==24 || j==0 || j==24 || (Math.random() > 0.8 && !(i<4 && j<4))) {
-                        let wall = new THREE.Mesh(wallGeo, wallMat);
-                        wall.position.set(i*2, 2, j*2);
-                        scene.add(wall); walls.push(wall);
-                    }
-                }
+            // جدران المتاهة (بخامة ملونة تعكس الاتجاهات لتخفيف الضغط)
+            let wallGeo = new THREE.BoxGeometry(2, 4, 2);
+            let wallMat = new THREE.MeshNormalMaterial(); 
+            for(let i=0; i<80; i++) {
+                let wall = new THREE.Mesh(wallGeo, wallMat);
+                let wx = Math.floor(Math.random() * 20 - 10) * 2;
+                let wz = Math.floor(Math.random() * 20 - 10) * 2;
+                if(wx === 0 && wz === 0) continue; // ترك منطقة البداية فارغة
+                wall.position.set(wx, 2, wz);
+                scene.add(wall);
             }
 
-            // الأرضية
-            let floor = new THREE.Mesh(new THREE.PlaneGeometry(100,100), new THREE.MeshStandardMaterial({color: 0x111111}));
-            floor.rotation.x = -Math.PI/2; scene.add(floor);
+            // أزرار التحكم الجديدة
+            document.getElementById('btn-up').ontouchstart = (e) => { e.preventDefault(); moveForward = true; };
+            document.getElementById('btn-up').ontouchend = (e) => { e.preventDefault(); moveForward = false; };
+            document.getElementById('btn-down').ontouchstart = (e) => { e.preventDefault(); moveBackward = true; };
+            document.getElementById('btn-down').ontouchend = (e) => { e.preventDefault(); moveBackward = false; };
 
-            // توزيع الموارد العشوائي
-            spawnItem('weapon', 0x555555, 10, 10);
-            spawnItem('ammo', 0xaaaaaa, 18, 8);
-            spawnItem('ammo', 0xaaaaaa, 8, 18);
-            spawnItem('pink', 0xff66b2, 20, 20);
-            spawnItem('blue', 0x0000ff, 6, 20);
-            spawnItem('green', 0x00ff00, 20, 6);
+            // الالتفاف عبر سحب الشاشة
+            window.addEventListener('touchmove', (e) => {
+                let currentX = e.touches[0].clientX;
+                if(lastX !== null) {
+                    let diff = currentX - lastX;
+                    camera.rotation.y -= diff * 0.008;
+                }
+                lastX = currentX;
+            });
+            window.addEventListener('touchend', () => lastX = null);
 
-            setupControls();
-            startTimer();
             animate();
         }
 
-        function spawnItem(type, color, x, z) {
-            let mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.3), new THREE.MeshBasicMaterial({color: color}));
-            mesh.position.set(x + Math.random()*2, 0.5, z + Math.random()*2);
-            scene.add(mesh);
-            items.push({ type: type, mesh: mesh });
-        }
-
-        function setupControls() {
-            document.getElementById('btn-run').ontouchstart = (e) => { e.preventDefault(); player.isRunning = true; };
-            document.getElementById('btn-run').ontouchend = (e) => { e.preventDefault(); player.isRunning = false; };
-            
-            document.getElementById('btn-shoot').ontouchstart = (e) => {
-                e.preventDefault();
-                if(player.ammo > 0) {
-                    player.ammo--; document.getElementById('ammo').innerText = player.ammo;
-                    showMsg("💥 تم إطلاق النار!");
-                } else { showMsg("الذخيرة فارغة!"); }
-            };
-
-            window.addEventListener('touchmove', (e) => {
-                if(e.touches[0].clientX > window.innerWidth/2) camera.rotation.y -= e.movementX * 0.008;
-            });
-        }
-
-        function startTimer() {
-            let timerInterval = setInterval(() => {
-                if(player.dead || gameTime <= 0) { clearInterval(timerInterval); return; }
-                gameTime--;
-                let m = Math.floor(gameTime/60), s = gameTime%60;
-                let timerEl = document.getElementById('timer');
-                timerEl.innerText = `${m}:${s<10?'0':''}${s}`;
-
-                // الوقت الأحمر والغزو
-                if(gameTime === 30) {
-                    timerEl.style.color = 'red';
-                }
-                if(gameTime === 60) {
-                    document.getElementById('invade-msg').style.display = 'block';
-                    showMsg("الوحش الأحمر وصل!");
-                    // هنا يتم إضافة كود استدعاء الوحش لاحقاً
-                }
-            }, 1000);
-        }
-
-        function showMsg(m) {
-            let el = document.getElementById('msg');
-            el.innerText = m; el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 3000);
-        }
-
         function animate() {
-            if(player.dead) return;
             requestAnimationFrame(animate);
-            
-            // حركة اللاعب
-            let moveSpeed = player.speed * (player.isRunning && player.stamina > 0 ? 1.7 : 1);
-            camera.translateZ(-moveSpeed);
-            
-            if(player.isRunning) player.stamina = Math.max(0, player.stamina - 0.5);
-            else player.stamina = Math.min(100, player.stamina + 0.3);
-            document.getElementById('stamina').innerText = Math.floor(player.stamina);
+            let delta = clock.getDelta();
+            let speed = 4 * delta;
 
-            // التحقق من التقاط الموارد
-            for(let i = items.length - 1; i >= 0; i--) {
-                let it = items[i];
-                it.mesh.rotation.y += 0.02;
-                if(camera.position.distanceTo(it.mesh.position) < 1.5) {
-                    if(it.type === 'weapon') {
-                        player.hasWeapon = true; player.ammo += 1;
-                        document.getElementById('btn-shoot').style.display = 'flex';
-                        showMsg("حصلت على الرشاش! (طلقة واحدة)");
-                    }
-                    else if(it.type === 'ammo') { player.ammo += 1; showMsg("حصلت على ذخيرة!"); }
-                    else if(it.type === 'pink') showMsg("التقطت الكريستالة الوردية!");
-                    else if(it.type === 'blue') showMsg("التقطت الكريستالة الزرقاء!");
-                    else if(it.type === 'green') showMsg("التقطت الكريستالة الخضراء!");
-                    
-                    document.getElementById('ammo').innerText = player.ammo;
-                    scene.remove(it.mesh); items.splice(i, 1);
-                }
-            }
-
-            // رسم الرادار
-            const canvas = document.getElementById('minimap-canvas'), ctx = canvas.getContext('2d');
-            ctx.clearRect(0,0,120,120);
-            ctx.save(); ctx.translate(60,60); ctx.rotate(-camera.rotation.y);
-            
-            // جدران
-            ctx.fillStyle = "rgba(255,255,255,0.3)";
-            walls.forEach(w => {
-                let dx = (w.position.x - camera.position.x)*3, dz = (w.position.z - camera.position.z)*3;
-                if(Math.abs(dx)<60 && Math.abs(dz)<60) ctx.fillRect(dx-1.5, dz-1.5, 3, 3);
-            });
-            
-            // رسم الموارد في الرادار
-            items.forEach(it => {
-                let dx = (it.mesh.position.x - camera.position.x)*3, dz = (it.mesh.position.z - camera.position.z)*3;
-                if(Math.abs(dx)<60 && Math.abs(dz)<60) {
-                    if(it.type === 'weapon') { ctx.font="10px Arial"; ctx.fillText("🔫", dx-5, dz+4); }
-                    else if(it.type === 'ammo') {
-                        ctx.fillStyle = 'gray'; ctx.fillRect(dx-2, dz-2, 4, 6);
-                        ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.moveTo(dx-2, dz-2); ctx.lineTo(dx+2, dz-2); ctx.lineTo(dx, dz-5); ctx.fill();
-                    }
-                    else if(it.type === 'pink') { ctx.fillStyle = 'hotpink'; ctx.beginPath(); ctx.arc(dx, dz, 3, 0, Math.PI*2); ctx.fill(); }
-                    else if(it.type === 'blue') { ctx.fillStyle = 'cyan'; ctx.beginPath(); ctx.arc(dx, dz, 3, 0, Math.PI*2); ctx.fill(); }
-                    else if(it.type === 'green') { ctx.fillStyle = '#0f0'; ctx.beginPath(); ctx.arc(dx, dz, 3, 0, Math.PI*2); ctx.fill(); }
-                }
-            });
-
-            // اللاعب
-            ctx.fillStyle = "#fff"; ctx.fillRect(-2, -2, 4, 4);
-            ctx.restore();
+            if(moveForward) camera.translateZ(-speed);
+            if(moveBackward) camera.translateZ(speed);
 
             renderer.render(scene, camera);
         }
+
+        init();
     </script>
 </body>
 </html>
