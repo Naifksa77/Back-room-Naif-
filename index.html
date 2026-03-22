@@ -3,51 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lord Naif - The Ultimate Pro Engine V10</title>
+    <title>Lord Naif - The Base Masterpiece</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        /* إعدادات الشاشة الأساسية */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', sans-serif; user-select: none; color: white; }
         #rotate-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 9999; font-size: 24px; font-weight: bold; }
         @media screen and (orientation: landscape) { #rotate-screen { display: none; } }
         
-        /* واجهة المستخدم (UI) - معزولة عن الكاميرا */
         #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .interactive { pointer-events: auto; }
         
-        /* المؤقت */
         #top-timer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.8); padding: 5px 20px; border-radius: 8px; border: 2px solid #444; transition: all 0.3s ease; text-shadow: 1px 1px 2px #000; }
         
-        /* الرادار - مصغر ومحسن */
         #minimap-container { position: absolute; top: 15px; left: 15px; width: 85px; height: 85px; border: 2px solid rgba(255,215,0,0.6); border-radius: 50%; background: rgba(0,0,0,0.85); overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
         
-        /* الموارد (المخزون) */
         #inventory-panel { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; flex-wrap: wrap; width: 160px; justify-content: flex-end; }
         .inv-box { background: rgba(0,0,0,0.8); border: 1px solid #555; border-radius: 8px; padding: 5px 10px; font-size: 16px; display: none; flex-direction: column; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
         .inv-box.blue-active { cursor: pointer; border-color: #00ffff; box-shadow: 0 0 10px #00ffff; }
         .item-count { font-weight: bold; margin-top: 3px; font-size: 14px; }
         .blue-timer-text { font-size: 11px; color: #00ffff; margin-top: 2px; font-weight: bold; }
 
-        /* التحكم بالحركة (الجويستيك) */
         #joystick-area { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid rgba(255,255,255,0.15); }
         #joystick-knob { width: 40px; height: 40px; background: rgba(255,255,255,0.5); border-radius: 50%; position: absolute; top: 35px; left: 35px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        /* أزرار الأكشن */
         .action-circle { position: absolute; border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; box-shadow: 0 0 15px rgba(0,0,0,0.6); background: rgba(255,255,255,0.15); }
         #btn-run-fast { bottom: 25px; right: 25px; width: 80px; height: 80px; font-size: 20px; color: white; text-shadow: 1px 1px 2px #000; }
         #btn-use-weapon { bottom: 120px; right: 35px; width: 60px; height: 60px; background: rgba(255,215,0,0.2); border-color: gold; display: none; font-size: 24px; }
         
-        /* شريط التحمل */
         #stamina-wrapper { position: absolute; bottom: 30px; right: 120px; width: 120px; height: 16px; background: rgba(0,0,0,0.7); border: 1px solid #fff; border-radius: 8px; overflow: hidden; transition: width 0.3s; }
         #stamina-progress { width: 100%; height: 100%; background: linear-gradient(90deg, #00aa00, #00ff00); transition: width 0.1s linear; }
         #stamina-label { position: absolute; top: 0; left: 0; width: 100%; height: 100%; text-align: center; font-size: 11px; line-height: 16px; font-weight: bold; text-shadow: 1px 1px 1px #000; }
 
-        /* رسائل الأحداث */
         #event-message { position: absolute; top: 25%; width: 100%; text-align: center; color: #ffff00; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; display: none; z-index: 50; }
         
-        /* شاشة الموت */
         #game-over-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; pointer-events: auto; }
-        .btn-restart { margin-top: 40px; padding: 15px 50px; background: #880000; color: #fff; border: 2px solid #ff0000; cursor: pointer; font-size: 22px; font-weight: bold; border-radius: 12px; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,0,0,0.4); }
+        .btn-restart { margin-top: 40px; padding: 15px 50px; background: #880000; color: #fff; border: 2px solid #ff0000; cursor: pointer; font-size: 22px; font-weight: bold; border-radius: 12px; box-shadow: 0 0 20px rgba(255,0,0,0.4); }
     </style>
 </head>
 <body>
@@ -74,51 +64,44 @@
     </div>
 
     <div id="game-over-screen">
-        <h1 style="color: #ff2222; font-size: 55px; text-shadow: 4px 4px 10px #000; margin-bottom: 0;">نال الوحش منك</h1>
-        <button class="btn-restart" onclick="location.reload()">إعادة المحاولة</button>
+        <h1 id="game-over-title" style="color: #ff2222; font-size: 55px; text-shadow: 4px 4px 10px #000; margin-bottom: 0;">نال الوحش منك</h1>
+        <button class="btn-restart" onclick="location.reload()">إعادة اللعب</button>
     </div>
 
     <script>
-        // ==========================================
-        // إعدادات المحرك الأساسية (Core Engine)
-        // ==========================================
         let scene, camera, renderer, clock, playerFlashlight;
         let mapSize = 35, cellSize = 6; 
         let grid = [], walls = [], itemsList = [], monstersList = [];
-        let gameTimeRemaining = 300, isEndgamePhase = false; 
+        let goldenKeyObj = null;
+        let gameTimeRemaining = 300;
+        
+        // المتغيرات الخاصة بالبوابات ونهاية اللعبة
+        let redPortalPos = new THREE.Vector3();
+        let isEndgamePhase = false;
+        let endgameTimer = 0;
+        let keySpawned = false;
+        let lastRedMonsterPos = new THREE.Vector3();
 
-        // ==========================================
-        // كائن اللاعب (Player Logic)
-        // ==========================================
         let player = {
             baseWalkSpeed: 4, currentSpeed: 4,
             maxStamina: 100, currentStamina: 100,
-            isSprinting: false, isMoving: false, isDead: false,
+            isSprinting: false, isMoving: false, isDead: false, hasWon: false,
             inventory: { pink: 0, blue: 0, green: 0, ammo: 0 },
-            hasWeapon: false,
-            blueCrystalActive: false, blueCrystalTimer: 0,
+            hasWeapon: false, blueCrystalActive: false, blueCrystalTimer: 0,
             deathAnimationTime: 0, greenUpgrades: 0
         };
 
-        // ==========================================
-        // نظام الإدخال واللمس (Input System)
-        // ==========================================
         let joystickTouchId = null, cameraTouchId = null;
         let moveVector = { x: 0, y: 0 };
         let lastTouchCamX = 0, lastTouchCamY = 0;
         
-        // ==========================================
-        // نظام الصوت (Audio Synthesizer)
-        // ==========================================
         let audioCtx = null;
         function initAudioEngine() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
         function playGameSound(soundType) {
             if(!audioCtx || audioCtx.state === 'suspended') return;
-            let osc = audioCtx.createOscillator(); 
-            let gainNode = audioCtx.createGain();
-            osc.connect(gainNode); 
-            gainNode.connect(audioCtx.destination);
+            let osc = audioCtx.createOscillator(); let gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
             
             if(soundType === 'step') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(140, audioCtx.currentTime);
@@ -137,20 +120,22 @@
                 gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if (soundType === 'win') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 1.5);
+                gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
             }
         }
         let lastFootstepTime = 0;
 
-        // ==========================================
-        // التهيئة وبناء العالم (Initialization)
-        // ==========================================
         function initGame() {
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x050508, 0.07);
 
-            // إعداد الكاميرا لمنع الميلان (Gimbal Lock Fix)
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.rotation.order = 'YXZ'; // ترتيب المحاور يمنع الـ Z-Roll
+            camera.rotation.order = 'YXZ'; 
             camera.position.set(cellSize * 2, 1.6, cellSize * 2);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -158,17 +143,13 @@
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            // الإضاءة
             scene.add(new THREE.AmbientLight(0x15151a));
             playerFlashlight = new THREE.PointLight(0xffeedd, 1.2, 14);
-            camera.add(playerFlashlight); 
-            scene.add(camera);
+            camera.add(playerFlashlight); scene.add(camera);
 
-            // الأرضية
             let floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
             let floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), floorMat);
-            floor.rotation.x = -Math.PI / 2; 
-            scene.add(floor);
+            floor.rotation.x = -Math.PI / 2; scene.add(floor);
 
             buildScatteredMaze();
             spawnInitialEntities();
@@ -176,7 +157,6 @@
             setupTouchHandlers();
             startMainGameTimer();
             window.addEventListener('touchstart', initAudioEngine, {once:true});
-            
             animateGameLoop();
         }
 
@@ -187,7 +167,6 @@
                 grid[i] = [];
                 for(let j=0; j<mapSize; j++) {
                     let isWall = (i===0 || i===mapSize-1 || j===0 || j===mapSize-1);
-                    // فراغات واسعة للمناورة
                     if(!isWall && i>3 && j>3) {
                         if(Math.random() > 0.85) isWall = true;
                         if(i>0 && grid[i-1][j] === 1 && Math.random() > 0.5) isWall = false; 
@@ -201,56 +180,58 @@
                 }
             }
 
-            // الباب الخشبي (الزاوية الشمالية الشرقية)
-            let woodenDoor = new THREE.Mesh(new THREE.BoxGeometry(4, 5, 0.5), new THREE.MeshStandardMaterial({color: 0x4a3018}));
-            woodenDoor.position.set(cellSize*2, 2.5, cellSize*(mapSize-2));
-            scene.add(woodenDoor);
+            // الباب الخشبي الملاصق (شمال شرق)
+            let woodenDoorGrp = new THREE.Group();
+            let wFrame = new THREE.Mesh(new THREE.BoxGeometry(4.2, 5.2, 0.4), new THREE.MeshStandardMaterial({color: 0xffd700})); // برواز ذهبي
+            let wDoor = new THREE.Mesh(new THREE.BoxGeometry(3.8, 4.8, 0.5), new THREE.MeshStandardMaterial({color: 0x4a3018})); // خشب
+            woodenDoorGrp.add(wFrame); woodenDoorGrp.add(wDoor);
+            // ملاصق للجدار الشرقي (i = mapSize-1)
+            woodenDoorGrp.position.set(cellSize*(mapSize-1) - 0.4, 2.5, cellSize*2);
+            woodenDoorGrp.rotation.y = Math.PI/2;
+            scene.add(woodenDoorGrp);
 
-            // البوابة الحمراء (الزاوية الجنوبية الغربية)
+            // البوابة الحمراء الملاصقة (جنوب غرب)
             let redDoorGroup = new THREE.Group();
-            let frame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5.5, 0.8), new THREE.MeshStandardMaterial({color: 0x000000}));
-            let door = new THREE.Mesh(new THREE.BoxGeometry(3.5, 5, 0.9), new THREE.MeshStandardMaterial({color: 0xcc0000}));
+            let frame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5.5, 0.6), new THREE.MeshStandardMaterial({color: 0x000000}));
+            let door = new THREE.Mesh(new THREE.BoxGeometry(3.5, 5, 0.7), new THREE.MeshStandardMaterial({color: 0xcc0000}));
             redDoorGroup.add(frame); redDoorGroup.add(door);
-            redDoorGroup.position.set(cellSize*(mapSize-2), 2.5, cellSize*2);
+            // ملاصق للجدار الجنوبي (j = mapSize-1)
+            redDoorGroup.position.set(cellSize*3, 2.5, cellSize*(mapSize-1) - 0.4);
             scene.add(redDoorGroup);
+            
+            // حفظ مكان البوابة لخروج الوحوش
+            redPortalPos.copy(redDoorGroup.position);
+            redPortalPos.z -= 2; // يخرج للأمام قليلاً
+            redPortalPos.y = 0;
         }
 
         function getSafeSpawnPos() {
             let rx, rz;
-            do { 
-                rx = Math.floor(Math.random()*(mapSize-4))+2; 
-                rz = Math.floor(Math.random()*(mapSize-4))+2; 
-            } while(grid[rx][rz] === 1);
+            do { rx = Math.floor(Math.random()*(mapSize-6))+3; rz = Math.floor(Math.random()*(mapSize-6))+3; } while(grid[rx][rz] === 1);
             return new THREE.Vector3(rx*cellSize, 0, rz*cellSize);
         }
 
-        // ==========================================
-        // تصميم الموارد 3D (3D Models)
-        // ==========================================
         function createMegaphone() {
             let group = new THREE.Group();
-            let cone = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 16), new THREE.MeshStandardMaterial({color: 0xdcdcdc, metalness: 0.8}));
-            cone.rotation.x = Math.PI/2;
-            let handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3), new THREE.MeshStandardMaterial({color: 0x111111}));
-            handle.position.set(0, -0.2, -0.1);
+            let cone = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 16), new THREE.MeshStandardMaterial({color: 0xdcdcdc, metalness: 0.8})); cone.rotation.x = Math.PI/2;
+            let handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3), new THREE.MeshStandardMaterial({color: 0x111111})); handle.position.set(0, -0.2, -0.1);
             group.add(cone); group.add(handle);
-            let glow = new THREE.PointLight(0xffd700, 1.5, 6); group.add(glow);
+            let glow = new THREE.PointLight(0xffd700, 2, 25); group.add(glow); // إشعاع 25 متر
             return group;
         }
 
         function createBattery() {
             let group = new THREE.Group();
             let body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.35), new THREE.MeshStandardMaterial({color: 0x222222}));
-            let tip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06), new THREE.MeshStandardMaterial({color: 0x00ff00}));
-            tip.position.y = 0.2;
+            let tip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06), new THREE.MeshStandardMaterial({color: 0x00ff00})); tip.position.y = 0.2;
             group.add(body); group.add(tip);
-            let glow = new THREE.PointLight(0xaaaaaa, 1, 4); group.add(glow);
+            let glow = new THREE.PointLight(0xaaaaaa, 2, 25); group.add(glow); // إشعاع 25 متر
             return group;
         }
 
         function createCrystal(colorHex) {
             let mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.25), new THREE.MeshStandardMaterial({color: colorHex, emissive: colorHex, emissiveIntensity: 0.5}));
-            let glow = new THREE.PointLight(colorHex, 2, 6); mesh.add(glow);
+            let glow = new THREE.PointLight(colorHex, 2.5, 25); mesh.add(glow); // إشعاع 25 متر
             return mesh;
         }
 
@@ -259,23 +240,17 @@
             if(type === 'weapon') mesh = createMegaphone();
             else if(type === 'ammo') mesh = createBattery();
             else mesh = createCrystal(type === 'blue' ? 0x00ffff : type === 'pink' ? 0xff69b4 : 0x00ff00);
-            
-            mesh.position.set(pos.x, 0.5, pos.z);
-            scene.add(mesh);
-            itemsList.push({ mesh: mesh, type: type });
+            mesh.position.set(pos.x, 0.5, pos.z); scene.add(mesh); itemsList.push({ mesh: mesh, type: type });
         }
 
-        // ==========================================
-        // تصميم الوحوش 3D (Monster Models)
-        // ==========================================
         function buildMonsterRig(isRed) {
             let group = new THREE.Group();
-            let mat = new THREE.MeshStandardMaterial({ color: isRed ? 0x990000 : 0xcccccc, roughness: 0.5 });
+            let mat = new THREE.MeshStandardMaterial({ color: isRed ? 0xaa0000 : 0xcccccc, roughness: 0.5 });
             let torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.4, 0.4), mat); torso.position.y = 2.8; group.add(torso);
             let head = new THREE.Mesh(new THREE.SphereGeometry(0.3), mat); head.position.y = 4.3; group.add(head);
             let armL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2), mat); armL.position.set(-0.4, 1.6, 0); group.add(armL);
             let armR = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2), mat); armR.position.set(0.4, 1.6, 0); group.add(armR);
-            if(isRed) { let glow = new THREE.PointLight(0xff0000, 2.5, 12); glow.position.y = 2.8; group.add(glow); }
+            if(isRed) { let glow = new THREE.PointLight(0xff0000, 2.5, 20); glow.position.y = 2.8; group.add(glow); }
             return group;
         }
 
@@ -285,22 +260,30 @@
             monstersList.push({ mesh: mesh, type: type, isAggressive: false, stunTimeRemaining: 0 });
         }
 
+        function spawnGoldenKey(pos) {
+            goldenKeyObj = new THREE.Group();
+            let keyBody = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1), new THREE.MeshStandardMaterial({color: 0xffd700, metalness: 1}));
+            keyBody.rotation.z = Math.PI/2;
+            let keyTeeth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), new THREE.MeshStandardMaterial({color: 0xffd700, metalness: 1}));
+            keyTeeth.position.set(0.3, -0.2, 0);
+            goldenKeyObj.add(keyBody); goldenKeyObj.add(keyTeeth);
+            let glow = new THREE.PointLight(0xffd700, 3, 30); goldenKeyObj.add(glow);
+            goldenKeyObj.position.set(pos.x, 1.5, pos.z);
+            scene.add(goldenKeyObj);
+        }
+
         function spawnInitialEntities() {
-            // الكريستالات والموارد
-            spawnItemObject('blue', new THREE.Vector3(cellSize*3, 0.5, cellSize*2)); // قريب
+            spawnItemObject('blue', new THREE.Vector3(cellSize*3, 0.5, cellSize*2)); 
             spawnItemObject('blue', getSafeSpawnPos()); spawnItemObject('blue', getSafeSpawnPos());
             spawnItemObject('pink', getSafeSpawnPos()); spawnItemObject('pink', getSafeSpawnPos());
-            spawnItemObject('green', getSafeSpawnPos()); // الأولى
+            spawnItemObject('green', getSafeSpawnPos()); 
             spawnItemObject('weapon', getSafeSpawnPos());
             spawnItemObject('ammo', getSafeSpawnPos()); spawnItemObject('ammo', getSafeSpawnPos()); spawnItemObject('ammo', getSafeSpawnPos());
 
-            // الوحش الأول (بعيد جداً)
-            spawnGameMonster('white', new THREE.Vector3(cellSize*(mapSize-4), 0, cellSize*(mapSize-4)));
+            // الوحش الأول على بعد حوالي 30 متر (5 خلايا)
+            spawnGameMonster('white', new THREE.Vector3(cellSize*7, 0, cellSize*7));
         }
 
-        // ==========================================
-        // نظام التحكم باللمس (Touch Controller)
-        // ==========================================
         function setupTouchHandlers() {
             const joyArea = document.getElementById('joystick-area');
             const joyKnob = document.getElementById('joystick-knob');
@@ -309,27 +292,19 @@
             window.addEventListener('touchstart', (e) => {
                 for(let i=0; i<e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
-                    if(touch.target.closest('#joystick-area')) {
-                        joystickTouchId = touch.identifier; handleJoyMove(touch);
-                    } 
-                    // إذا لم تلمس الواجهة (no-cam)
-                    else if(!touch.target.closest('.interactive') && cameraTouchId === null) {
-                        cameraTouchId = touch.identifier;
-                        lastTouchCamX = touch.clientX; lastTouchCamY = touch.clientY;
-                    }
+                    if(touch.target.closest('#joystick-area')) { joystickTouchId = touch.identifier; handleJoyMove(touch); } 
+                    else if(!touch.target.closest('.interactive') && cameraTouchId === null) { cameraTouchId = touch.identifier; lastTouchCamX = touch.clientX; lastTouchCamY = touch.clientY; }
                 }
             }, {passive: false});
 
             window.addEventListener('touchmove', (e) => {
                 for(let i=0; i<e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
-                    if(touch.identifier === joystickTouchId) {
-                        e.preventDefault(); handleJoyMove(touch);
-                    } else if(touch.identifier === cameraTouchId) {
+                    if(touch.identifier === joystickTouchId) { e.preventDefault(); handleJoyMove(touch); } 
+                    else if(touch.identifier === cameraTouchId) {
                         e.preventDefault();
                         camera.rotation.y -= (touch.clientX - lastTouchCamX) * 0.006;
                         camera.rotation.x -= (touch.clientY - lastTouchCamY) * 0.006;
-                        // تثبيت زاوية النظر لأعلى وأسفل (Pitch Clamping)
                         camera.rotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, camera.rotation.x));
                         lastTouchCamX = touch.clientX; lastTouchCamY = touch.clientY;
                     }
@@ -339,19 +314,15 @@
             window.addEventListener('touchend', (e) => {
                 for(let i=0; i<e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
-                    if(touch.identifier === joystickTouchId) {
-                        joystickTouchId = null; player.isMoving = false;
-                        moveVector = {x:0, y:0}; joyKnob.style.transform = `translate(0px, 0px)`;
-                    } else if(touch.identifier === cameraTouchId) {
-                        cameraTouchId = null;
-                    }
+                    if(touch.identifier === joystickTouchId) { joystickTouchId = null; player.isMoving = false; moveVector = {x:0, y:0}; joyKnob.style.transform = `translate(0px, 0px)`; } 
+                    else if(touch.identifier === cameraTouchId) { cameraTouchId = null; }
                 }
             });
 
             function handleJoyMove(touch) {
                 let dx = touch.clientX - cx, dy = touch.clientY - cy;
                 let dist = Math.sqrt(dx*dx + dy*dy), maxDist = 35;
-                if(dist > 0) { // منع القسمة على صفر (Fix NaN Bug)
+                if(dist > 0) {
                     player.isMoving = true;
                     if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
                     joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
@@ -359,7 +330,6 @@
                 }
             }
 
-            // الأزرار
             const runBtn = document.getElementById('btn-run-fast');
             runBtn.addEventListener('touchstart', (e) => { e.preventDefault(); player.isSprinting = true; runBtn.style.background = 'rgba(255,255,255,0.4)'; });
             runBtn.addEventListener('touchend', (e) => { e.preventDefault(); player.isSprinting = false; runBtn.style.background = 'rgba(255,255,255,0.15)'; });
@@ -377,7 +347,6 @@
                 e.preventDefault();
                 if(player.hasWeapon && player.inventory.ammo > 0) {
                     player.inventory.ammo--; refreshUI(); playGameSound('megaphone');
-                    // رعب الوحوش البيضاء
                     monstersList.forEach(m => {
                         if(m.type === 'white' && camera.position.distanceTo(m.mesh.position) <= 6) {
                             m.stunTimeRemaining = 5; m.isAggressive = false; 
@@ -387,26 +356,20 @@
             });
         }
 
-        // ==========================================
-        // تحديث الواجهة والرسائل (UI Updates)
-        // ==========================================
         function refreshUI() {
             ['pink', 'blue', 'green', 'ammo'].forEach(k => {
-                let box = document.getElementById('item-'+k);
-                let count = player.inventory[k];
+                let box = document.getElementById('item-'+k); let count = player.inventory[k];
                 if(count > 0 || (k==='blue' && player.blueCrystalActive)) { box.style.display = 'flex'; box.querySelector('.item-count').innerText = count; }
                 else { box.style.display = 'none'; }
             });
             if(player.hasWeapon) {
-                document.getElementById('item-weapon').style.display = 'flex';
-                document.getElementById('item-weapon').querySelector('.item-count').innerText = "1";
+                document.getElementById('item-weapon').style.display = 'flex'; document.getElementById('item-weapon').querySelector('.item-count').innerText = "1";
                 document.getElementById('btn-use-weapon').style.display = 'flex';
             }
         }
 
         function displayEventMessage(msgArray) {
-            let el = document.getElementById('event-message');
-            let delay = 0;
+            let el = document.getElementById('event-message'); let delay = 0;
             msgArray.forEach(txt => {
                 setTimeout(() => { el.innerText = txt; el.style.display = 'block'; }, delay);
                 delay += 3500;
@@ -416,22 +379,31 @@
 
         function startMainGameTimer() {
             setInterval(() => {
-                if(gameTimeRemaining > 0 && !player.isDead) {
+                if(gameTimeRemaining > 0 && !player.isDead && !isEndgamePhase) {
                     gameTimeRemaining--;
                     let m = Math.floor(gameTimeRemaining/60), s = gameTimeRemaining%60;
                     let tUI = document.getElementById('top-timer');
                     tUI.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
                     
                     if(gameTimeRemaining === 120) {
-                        spawnGameMonster('white', new THREE.Vector3(cellSize*(mapSize-2), 0, cellSize*2)); // عند البوابة الحمراء
+                        spawnGameMonster('white', redPortalPos); // يخرج من البوابة الحمراء
                         spawnItemObject('green', getSafeSpawnPos());
                         displayEventMessage(["لقد ظهر الوحش الثاني!", "لقد ظهرت الكريستالة الخضراء!"]);
                     }
 
                     if(gameTimeRemaining === 30) {
                         tUI.style.color = '#ff3333'; tUI.style.borderColor = '#ff3333';
-                        spawnGameMonster('red', getSafeSpawnPos());
+                        spawnGameMonster('red', redPortalPos); // يخرج من البوابة الحمراء
                         displayEventMessage(["الرعب الحقيقي بدأ.. الوحش الأحمر قادم!"]);
+                    }
+
+                    // تحقق نهاية الوقت
+                    if(gameTimeRemaining === 0) {
+                        isEndgamePhase = true;
+                        let redM = monstersList.find(m => m.type === 'red');
+                        if(redM) lastRedMonsterPos.copy(redM.mesh.position);
+                        else lastRedMonsterPos.copy(redPortalPos); // احتياط
+                        displayEventMessage(["انتهى الوقت.. تجمدت الوحوش!"]);
                     }
 
                     if(player.blueCrystalActive) {
@@ -447,9 +419,6 @@
             }, 1000);
         }
 
-        // ==========================================
-        // التصادم والحركة (Collision & Math)
-        // ==========================================
         function checkCollision(nextX, nextZ) {
             let gx = Math.round(nextX / cellSize), gz = Math.round(nextZ / cellSize);
             if(gx < 0 || gx >= mapSize || gz < 0 || gz >= mapSize) return false;
@@ -458,14 +427,17 @@
 
         let corpseMesh = null;
 
-        // ==========================================
-        // حلقة اللعب الرئيسية (Main Render Loop)
-        // ==========================================
         function animateGameLoop() {
             requestAnimationFrame(animateGameLoop);
             let dt = Math.min(clock.getDelta(), 0.1);
 
-            // 1. كاميرا الموت
+            // الفوز باللعبة
+            if(player.hasWon) {
+                camera.rotation.y += 1 * dt; // دوران احتفالي
+                renderer.render(scene, camera); return;
+            }
+
+            // كاميرا الموت
             if(player.isDead) {
                 player.deathAnimationTime += dt;
                 if(!corpseMesh) {
@@ -479,7 +451,33 @@
                 renderer.render(scene, camera); return;
             }
 
-            // 2. تحديث التحمل والسرعة
+            // نهاية الوقت (Endgame)
+            if(isEndgamePhase) {
+                endgameTimer += dt;
+                // الوحوش لا تتحرك (مجمدة)
+                if(endgameTimer > 3 && !keySpawned) {
+                    monstersList.forEach(m => scene.remove(m.mesh)); // تبخر الوحوش
+                    monstersList = [];
+                    spawnGoldenKey(lastRedMonsterPos); // ظهور المفتاح
+                    keySpawned = true;
+                    displayEventMessage(["ظهر المفتاح الذهبي.. اهرب!"]);
+                }
+                
+                // التقاط المفتاح الذهبي
+                if(keySpawned && goldenKeyObj) {
+                    goldenKeyObj.rotation.y += 2 * dt;
+                    if(camera.position.distanceTo(goldenKeyObj.position) < 2.5) {
+                        player.hasWon = true; playGameSound('win');
+                        document.getElementById('game-ui').style.display = 'none';
+                        document.getElementById('game-over-title').innerText = "لقد هربت بنجاح!";
+                        document.getElementById('game-over-title').style.color = "gold";
+                        document.querySelector('.btn-restart').innerText = "العب مجدداً";
+                        document.getElementById('game-over-screen').style.display = 'flex';
+                    }
+                }
+            }
+
+            // تحديث التحمل
             if(player.isMoving && player.isSprinting && player.currentStamina > 0) player.currentStamina -= 25 * dt;
             else player.currentStamina = Math.min(player.maxStamina, player.currentStamina + 15 * dt);
             
@@ -489,13 +487,13 @@
 
             player.currentSpeed = player.baseWalkSpeed * (player.isSprinting && player.currentStamina > 0 ? 1.8 : 1);
 
-            // 3. حركة اللاعب
+            // حركة اللاعب
             if(player.isMoving && (moveVector.x !== 0 || moveVector.y !== 0)) {
                 let forward = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion); forward.y=0; forward.normalize();
                 let right = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion); right.y=0; right.normalize();
                 
                 let direction = new THREE.Vector3().addScaledVector(right, moveVector.x).addScaledVector(forward, -moveVector.y);
-                if(direction.lengthSq() > 0) { // الأمان لتجنب الـ NaN
+                if(direction.lengthSq() > 0) { 
                     direction.normalize();
                     let targetX = camera.position.x + direction.x * player.currentSpeed * dt;
                     let targetZ = camera.position.z + direction.z * player.currentSpeed * dt;
@@ -503,13 +501,11 @@
                     if(checkCollision(targetX, camera.position.z)) camera.position.x = targetX;
                     if(checkCollision(camera.position.x, targetZ)) camera.position.z = targetZ;
 
-                    if(clock.elapsedTime - lastFootstepTime > (player.isSprinting?0.3:0.55)) { 
-                        playGameSound('step'); lastFootstepTime = clock.elapsedTime; 
-                    }
+                    if(clock.elapsedTime - lastFootstepTime > (player.isSprinting?0.3:0.55)) { playGameSound('step'); lastFootstepTime = clock.elapsedTime; }
                 }
             }
 
-            // 4. دوران والتقاط الموارد
+            // التقاط الموارد
             for(let i=itemsList.length-1; i>=0; i--) {
                 let it = itemsList[i]; it.mesh.rotation.y += Math.PI * dt;
                 if(camera.position.distanceTo(it.mesh.position) < 2.5) {
@@ -527,37 +523,41 @@
                 }
             }
 
-            // 5. الذكاء الاصطناعي للوحوش
-            monstersList.forEach(m => {
-                let distToPlayer = camera.position.distanceTo(m.mesh.position);
-                
-                if(m.stunTimeRemaining > 0) {
-                    m.stunTimeRemaining -= dt;
-                    m.mesh.lookAt(camera.position); m.mesh.rotation.y += Math.PI; 
-                    m.mesh.translateZ(4 * 1.5 * dt); // الهرب
-                } else {
-                    let hearingRange = player.isSprinting ? 22 : (player.isMoving ? 10 : 4);
-                    if(distToPlayer < hearingRange) m.isAggressive = true; else if(distToPlayer > hearingRange * 2) m.isAggressive = false;
+            // الذكاء الاصطناعي للوحوش (تعمل فقط إذا لم تكن في مرحلة التجميد)
+            if(!isEndgamePhase) {
+                monstersList.forEach(m => {
+                    let distToPlayer = camera.position.distanceTo(m.mesh.position);
+                    
+                    if(m.stunTimeRemaining > 0) {
+                        m.stunTimeRemaining -= dt;
+                        // الهروب المصلح (على محور XZ فقط بدون اختراق الأرض)
+                        let fleeDir = new THREE.Vector3().subVectors(m.mesh.position, camera.position);
+                        fleeDir.y = 0; fleeDir.normalize();
+                        m.mesh.position.addScaledVector(fleeDir, 4 * 1.5 * dt);
+                        m.mesh.lookAt(m.mesh.position.x + fleeDir.x, m.mesh.position.y, m.mesh.position.z + fleeDir.z);
+                    } else {
+                        let hearingRange = player.isSprinting ? 22 : (player.isMoving ? 10 : 4);
+                        if(distToPlayer < hearingRange) m.isAggressive = true; else if(distToPlayer > hearingRange * 2) m.isAggressive = false;
 
-                    let moveSpeed = 4 * (m.isAggressive ? 1.4 : 1.1) * dt;
-                    if(m.type === 'red') moveSpeed *= 1.25;
+                        let moveSpeed = 4 * (m.isAggressive ? 1.4 : 1.1) * dt;
+                        if(m.type === 'red') moveSpeed *= 1.25;
 
-                    if(m.isAggressive) { m.mesh.lookAt(camera.position.x, m.mesh.position.y, camera.position.z); m.mesh.translateZ(moveSpeed); }
-                    else { m.mesh.translateZ(moveSpeed*0.5); if(Math.random()<0.03) m.mesh.rotation.y += (Math.random()-0.5)*Math.PI; }
-                }
+                        if(m.isAggressive) { m.mesh.lookAt(camera.position.x, m.mesh.position.y, camera.position.z); m.mesh.translateZ(moveSpeed); }
+                        else { m.mesh.translateZ(moveSpeed*0.5); if(Math.random()<0.03) m.mesh.rotation.y += (Math.random()-0.5)*Math.PI; }
+                    }
 
-                // لمس الوحش (الكريستالة الوردية أو الموت)
-                if(distToPlayer < 1.8) {
-                    if(player.inventory.pink > 0) {
-                        player.inventory.pink--; refreshUI(); playGameSound('teleport');
-                        let safeSpot = getSafeSpawnPos(); camera.position.set(safeSpot.x, 1.6, safeSpot.z);
-                        m.stunTimeRemaining = 2; m.isAggressive = false;
-                        displayEventMessage(["استخدمت الكريستالة الوردية للنجاة!"]);
-                    } else { player.isDead = true; }
-                }
-            });
+                    if(distToPlayer < 1.8) {
+                        if(player.inventory.pink > 0) {
+                            player.inventory.pink--; refreshUI(); playGameSound('teleport');
+                            let safeSpot = getSafeSpawnPos(); camera.position.set(safeSpot.x, 1.6, safeSpot.z);
+                            m.stunTimeRemaining = 2; m.isAggressive = false;
+                            displayEventMessage(["استخدمت الكريستالة الوردية للنجاة!"]);
+                        } else { player.isDead = true; }
+                    }
+                });
+            }
 
-            // 6. الرادار الذكي والمصغر
+            // الرادار
             const radarCanvas = document.getElementById('radar-canvas'), ctx = radarCanvas.getContext('2d');
             ctx.clearRect(0,0,85,85); ctx.save(); ctx.translate(42.5,42.5); ctx.rotate(camera.rotation.y);
             
@@ -588,11 +588,8 @@
             renderer.render(scene, camera);
         }
         
-        // تعديل الأبعاد عند دوران الشاشة
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
         initGame();
